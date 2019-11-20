@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- Secuencias -->
+	<!-- Equipo Laptop -->
+	<data noupdate="1">
+		<record id="seq_pagos_transferencias" model="ir.sequence">
+			<field name="name">pagos_transferencias_sequence</field>
+			<field name="code">contabilidad.pagos.transferencia</field>
+			<field name="prefix">PTRANS</field>
+			<field name="padding">4</field>
+			<field name="company_id" eval="False"/>
+		</record>
+	</data>
+</odoo>

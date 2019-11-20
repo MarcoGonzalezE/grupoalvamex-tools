@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+        <record id="costeo_produccion_form_inherited" model="ir.ui.view">
+            <field name="name">Costeo de Produccion</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='button_scrap']" position="after">
+                    <button name="action_op_funtion" string="Costear" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'done'),('costeado','=',True)]}" groups="grupoalvamex-tools.tk_group_functions"/>                    
+                </xpath>
+                <xpath expr="//field[@name='product_id']" position="after">
+                    <field name="orden_producion_costear" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='origin']" position="after">
+                    <field name="costeado" readonly="1"/>
+                </xpath>
+            </field>
+        </record>
+
+
+        <!-- <record id="ticket_form_view" model="ir.ui.view">
+            <field name="name">mk.wizard.op.form</field>
+            <field name="model">mk.wizard.op</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <xpath exp="//header/button[@name='button_scrap']" position="after">
+                    <button name="action_op_funtion" string="Costear" type="object" class="oe_highlight"/>
+                </xpath>
+                <xpath exp="//sheet/group/group/field[@name='product_id']" position="after">
+                    <field name="orden_produccion_costeo"/>
+                </xpath>
+            </field>
+        </record> -->
+
+        <!-- <record model="ir.actions.act_window" id="op_action_view">
+            <field name="name">Orden de Produccion</field>
+            <field name="res_model">mk.wizard.op</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <field name="domain">[]</field>
+         </record> -->
+
+
+        <!-- menu parent-->
+<!--         <menuitem name="Funciones" id="menu_root" sequence="115" web_icon="huevo_control,static/description/logo.png" groups="tk_group_functions"/>
+ -->        <!-- menu Inventario -->
+<!--         <menuitem name="Orden Produccion" id="menu_fabricacion" parent="menu_root" action="op_action_view" />
+ -->
+	</data>
+</odoo>

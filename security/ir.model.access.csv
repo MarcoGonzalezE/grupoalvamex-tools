@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_contabilidad_pagos_cheque,contabilidad.pagos.cheque,model_contabilidad_pagos_cheque,,1,1,1,1
+access_contabilidad_pagos_transferencia,contabilidad.pagos.transferencia,model_contabilidad_pagos_transferencia,,1,1,1,1

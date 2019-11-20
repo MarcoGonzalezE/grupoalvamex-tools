@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+<!-- CHEQUE MANUAL -->
+        <report id="pagos_cheque_manual" string="Cheque Manual" model="contabilidad.pagos.cheque" report_type="qweb-pdf" name="grupoalvamex-tools.cheque_manual_document" paperformat="account_check_printing_report_base.paperformat_check"/>
+        <template id="cheque_manual_document">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <div class="page">                    
+                        <div style="padding-top:15mm;">
+                            <!--style="padding-top:20mm;"-->
+                            <div  align="right">
+                                <span t-esc="o.fecha"/> <!-- Fecha de pago -->
+                                <br/>
+                            </div>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <div>
+                                <table>
+                                    <tr>
+                                        <td width="100%" aling="center">
+                                            <span t-field="o.nombre2"/>
+                                        </td>
+                                        <td width="100%" align="right">
+                                            <span t-field="o.cantidad" t-options='{"widget": "float", "precision": 2}'/> <!--t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}" />--> <!-- Cantidad -->
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <br/>
+                            <span t-field="o.cantidad_letra"/> <!-- Cantidad en letra -->
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <span t-field="o.concepto"/>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+<!-- SOLICITUD DE TRANSFERENCIA -->
+        <report id="pagos_solicitud_trasferencia" string="Solicitud de Transferencia" model="contabilidad.pagos.transferencia" report_type="qweb-pdf" name="grupoalvamex-tools.solicitud_trasferencia_document" paperformat="account_check_printing_report_base.paperformat_check"/>
+        <template id="solicitud_trasferencia_document">
+            <t t-call="report.html_container">
+                <div class="page">
+                    <t t-foreach="docs" t-as="o">
+                        <table style="width:100%">
+                            <tr>
+                                <td colspan="3" align="right">
+                                    <p><strong>FECHA </strong><u><span t-field="o.fecha"/></u></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 20%">
+                                        <!-- <div class="col-xs-3">
+                                            <img t-if="o.company_id.logo" t-att-src="'data:image/png;base64,%s' % company.logo" style="max-height: 45px;"/>
+                                        </div> -->
+                                        <div>
+                                            <img src="/web/binary/company_logo" style="max-height: 100%; vertical-align: middle;"/>
+                                        </div>
+                                    </td>
+                                    <td align="center" style="width 100%">
+                                        <p align="center">
+                                            <strong><font size="3">AVICAMPO S. de P.R de R.L. de C.V</font><br/>
+                                            KM3.CARRETERA LA BARCA-ATOTONILCO,<br/>
+                                            TELS/FAX 01(393)935-6578, 935-689<br/>
+                                            LA BARCA, JALISCO. C.P. 47910
+                                        </strong>
+                                    </p>
+                                </td>
+                                <td style="width: 20%"/>
+                            </tr>
+                            <tr>
+                                <td colspan="3" align="center">
+                                    <br/>
+                                    <p align="center"><strong><u>SOLICITUD DE TRASNFERENCIA</u></strong></p>
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="width:100%; border: 1px solid black; border-collapse: collapse;">
+                            <tr style="border-bottom: 1px solid black;">
+                                <td style="padding: 15px;">
+                                    <p><strong>VENCIMIENTO</strong></p>
+                                </td>
+                                <td align="center">
+                                    <strong><span t-field="o.vencimiento"/></strong>
+                                </td>
+                                <td style="width: 20%"/>
+                            </tr>
+                            <tr style="border-bottom: 1px solid black;">
+                                <td style="padding: 15px;">
+                                    <p><strong>TRASFERENCIA A FAVOR DE:</strong></p>
+                                </td>
+                                <td align="center">
+                                    <strong><span t-field="o.nombre2"/></strong>
+                                </td>
+                                <td style="width: 20%"/>
+                            </tr>
+                            <tr style="border-bottom: 1px solid black;">
+                                <td style="padding: 15px;">
+                                    <p><strong>POR LA CANTIDAD DE:</strong></p>
+                                </td>
+                                <td align="center">
+                                    <strong><span t-field="o.cantidad"/></strong>
+                                </td>
+                                <td style="width: 20%"/>
+                            </tr>
+                            <tr style="border-bottom: 1px solid black;">
+                                <td colspan="3" align="center" style="padding: 10px;">
+                                    <p><strong>(<span t-field="o.cantidad_letra"/>)</strong></p>
+                                </td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid black;">
+                                <td style="padding: 15px;">
+                                    <p><strong>CUENTA:</strong></p>
+                                </td>
+                                <td align="center">
+                                    <strong><span t-field="o.cuenta"/></strong>
+                                </td>
+                                <td style="width: 20%"/>
+                            </tr>
+                            <tr style="border-bottom: 1px solid black;">
+                                <td style="padding: 15px;">
+                                    <p><strong>CLABE:</strong></p>
+                                </td>
+                                <td align="center">
+                                    <strong><span t-field="o.clabe"/></strong>
+                                </td>
+                                <td style="width: 20%"/>
+                            </tr>
+                            <tr>
+                                <td colspan="3" align="center" style="padding: 25px;">
+                                    <strong><span t-field="o.banco"/></strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 25px;">
+                                    <p><strong>A CONCEPTO DE:</strong></p>
+                                </td>
+                                <td align="center" style="padding: 25px;">
+                                    <strong><span t-field="o.concepto"/></strong>
+                                </td>
+                                <td style="width: 20%"/>
+                            </tr>
+                            <tr>
+                                <td colspan="3" style="padding: 25px;"/>
+                            </tr>
+                        </table>
+                        <br/>
+                        <table style="width:100%; border: 1px solid black; border-collapse: collapse;">
+                            <tr>
+                                <td colspan="3" style="padding: 30px;"/>
+                            </tr>
+                            <tr>
+                                <td align="center">
+                                    <p>__________________________<br/><strong>SOLICITO</strong></p>
+                                </td>
+                                <td align="center">
+                                    <p>__________________________<br/><strong>Vo.Bo.</strong></p>
+                                </td>
+                                <td align="center">
+                                    <p>__________________________<br/><strong>AUTORIZO</strong></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </t>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>

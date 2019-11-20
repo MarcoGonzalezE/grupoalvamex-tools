@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<odoo>
+      <!-- categoria de accesos -->
+       <record id="module_functions" model="ir.module.category">
+            <field name="name">Funciones Avicampo</field>
+            <field name="sequence">17</field>
+        </record>
+        <!-- grupos de accesos -->
+        <record id="tk_group_functions" model="res.groups">
+            <field name="name">Acceso Total</field>
+            <field name="category_id" ref="module_functions"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user','base.group_system'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root'))]"/>
+        </record>
+</odoo>

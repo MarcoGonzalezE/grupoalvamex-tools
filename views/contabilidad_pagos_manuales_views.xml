@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+<!-- CHEQUES -->
+    <record id="contabilidad_pagos_cheque_view_form" model="ir.ui.view">
+      <field name="name">Cheque Manual</field>
+      <field name="model">contabilidad.pagos.cheque</field>
+      <field name="arch" type="xml">
+        <form string="Cheque Manual">
+          <sheet>
+            <group>
+              <group>
+                <field name="name"/>
+              </group>
+              <group>
+                <field name="fecha"/>
+              </group>
+            </group>
+            <group>
+              <group>
+                <field name="nombre"/>
+                <field name="nombre2"/>
+              </group>
+              <group>
+                <label for="cantidad"/>
+                <div name="cantidad_div" class="o_row">
+                  <field name="cantidad" widget="monetary"/>
+                  <field name="currency_id"/>
+                </div>
+                <p align="left" colspan="2"><field name="cantidad_letra" readonly="1"/></p>
+              </group>
+            </group>
+            <group>
+              <field name="concepto"/>
+            </group>
+          </sheet>
+          <div class="oe_chatter">
+            <style>
+              .o_chatter_button_new_message {
+              display: none;
+              }
+            </style>
+            <field name="message_follower_ids" widget="mail_followers"/>
+            <field name="message_ids" widget="mail_thread"/>
+          </div>
+        </form>
+      </field>
+    </record>
+
+    <record id="contabilidad_pagos_cheque_view_tree" model="ir.ui.view">
+      <field name="name">Cheque Manual</field>
+      <field name="model">contabilidad.pagos.cheque</field>
+      <field name="arch" type="xml">
+        <tree string="Cheques Manuales">
+          <field name="name"/>
+          <field name="nombre2"/>
+          <field name="cantidad"/>
+          <field name="fecha"/>
+        </tree>
+      </field>
+    </record>
+
+    <record id="contabilidad_pagos_cheque_action" model="ir.actions.act_window">
+      <field name="name">Cheque Manual</field>
+      <field name="res_model">contabilidad.pagos.cheque</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+<!-- TRANSFERENCIAS -->
+    <record id="contabilidad_pagos_transferencias_view_form" model="ir.ui.view">
+      <field name="name">Solicitud Transferencia</field>
+      <field name="model">contabilidad.pagos.transferencia</field>
+      <field name="arch" type="xml">
+        <form string="Solicitud Transferencia">
+          <sheet>
+            <group>
+              <group>
+                <h1><field name="name" readonly="1"/></h1>
+              </group>
+              <group>
+                <field name="fecha"/>
+                <field name="vencimiento"/>
+              </group>
+            </group>
+            <group>
+              <group>
+                <field name="nombre"/>
+                <field name="nombre2"/>                
+                <field name="cuenta"/>
+                <field name="clabe"/>
+                <field name="banco"/>
+              </group>
+              <group>
+                <label for="cantidad"/>
+                <div name="cantidad_div" class="o_row">
+                  <field name="cantidad" widget="monetary"/>
+                  <field name="currency_id"/>
+                </div>
+                <p align="left" colspan="2"><field name="cantidad_letra" readonly="1"/></p>
+              </group>
+            </group>
+            <group name="Concepto">
+              <field name="concepto"/>
+            </group>
+          </sheet>
+          <div class="oe_chatter">
+            <style>
+              .o_chatter_button_new_message {
+              display: none;
+              }
+            </style>
+            <field name="message_follower_ids" widget="mail_followers"/>
+            <field name="message_ids" widget="mail_thread"/>
+          </div>
+        </form>
+      </field>
+    </record>
+
+    <record id="contabilidad_pagos_transferencias_view_tree" model="ir.ui.view">
+      <field name="name">Solicitud Transferencia</field>
+      <field name="model">contabilidad.pagos.transferencia</field>
+      <field name="arch" type="xml">
+        <tree string="Solicitud Transferencia">
+          <field name="name"/>
+          <field name="nombre2"/>
+          <field name="cantidad"/>
+          <field name="fecha"/>
+        </tree>
+      </field>
+    </record>
+
+    <record id="contabilidad_pagos_transferencias_action" model="ir.actions.act_window">
+      <field name="name">Solicitud Transferencia</field>
+      <field name="res_model">contabilidad.pagos.transferencia</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+<!--MENU -->
+    <menuitem id="contabilidad_pagos_menu" name="Pagos Manuales" sequence="200" parent="account.menu_finance_payables"/>
+    <menuitem id="pagos_cheques_menu" name="Cheques manuales" sequence="201" parent="contabilidad_pagos_menu" action="contabilidad_pagos_cheque_action"/>
+    <menuitem id="pagos_transferencias_menu" name="Solicitud Transferencias" sequence="202" parent="contabilidad_pagos_menu" action="contabilidad_pagos_transferencias_action"/>
+
+  </data>
+</odoo>
