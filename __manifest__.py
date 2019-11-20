@@ -10,6 +10,9 @@
             -Pagos \n
             - Solicitudes de Transferencias
             - Cheques Manuales
+        Fabricación
+            -Costeo \n
+            - Costeo de órdenes de Producción
     """,
 
     'author': "Marco Gonzalez",

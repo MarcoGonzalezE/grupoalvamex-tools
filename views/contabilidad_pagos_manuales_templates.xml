@@ -2,7 +2,7 @@
 <odoo>
     <data>
 <!-- CHEQUE MANUAL -->
-        <report id="pagos_cheque_manual" string="Cheque Manual" model="contabilidad.pagos.cheque" report_type="qweb-pdf" name="grupoalvamex-tools.cheque_manual_document" paperformat="account_check_printing_report_base.paperformat_check"/>
+        <report id="pagos_cheque_manual" string="Cheque Manual" model="contabilidad.pagos.cheque" report_type="qweb-pdf" name="grupoalvamex_tools.cheque_manual_document" paperformat="account_check_printing_report_base.paperformat_check"/>
         <template id="cheque_manual_document">
             <t t-call="report.html_container">
                 <t t-foreach="docs" t-as="o">
@@ -49,7 +49,7 @@
             </t>
         </template>
 <!-- SOLICITUD DE TRANSFERENCIA -->
-        <report id="pagos_solicitud_trasferencia" string="Solicitud de Transferencia" model="contabilidad.pagos.transferencia" report_type="qweb-pdf" name="grupoalvamex-tools.solicitud_trasferencia_document" paperformat="account_check_printing_report_base.paperformat_check"/>
+        <report id="pagos_solicitud_trasferencia" string="Solicitud de Transferencia" model="contabilidad.pagos.transferencia" report_type="qweb-pdf" name="grupoalvamex_tools.solicitud_trasferencia_document" paperformat="account_check_printing_report_base.paperformat_check"/>
         <template id="solicitud_trasferencia_document">
             <t t-call="report.html_container">
                 <div class="page">

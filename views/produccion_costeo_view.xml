@@ -7,7 +7,7 @@
             <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
             <field name="arch" type="xml">
                 <xpath expr="//button[@name='button_scrap']" position="after">
-                    <button name="action_op_funtion" string="Costear" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'done'),('costeado','=',True)]}" groups="grupoalvamex-tools.tk_group_functions"/>                    
+                    <button name="action_op_funtion" string="Costear" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'done'),('costeado','=',True)]}" groups="grupoalvamex_tools.tk_group_functions"/>                    
                 </xpath>
                 <xpath expr="//field[@name='product_id']" position="after">
                     <field name="orden_producion_costear" invisible="1"/>
