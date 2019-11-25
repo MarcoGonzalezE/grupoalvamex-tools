@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Avicampo Tools",
+    'name': "Palmito Tools",
 
     'summary': """
-        Herramientas Avicampo""",
+        Herramientas Palmito""",
 
     'description': """
         Contabilidad
