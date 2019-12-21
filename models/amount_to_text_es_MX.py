@@ -175,6 +175,11 @@ def get_amount_to_text(self, amount, currency=""):
         currency = 'PESOS'
     else:
         sufijo = 'M. E.'
+    if currency.upper() in ('USD'):
+        sufijo = 'USD'
+        currency = 'DOLARES'
+    else:
+        sufijo = 'M. E.'
     # return amount_to_text(amount, lang, currency)
     amount_text = amount_to_text().amount_to_text_cheque(amount, currency, sufijo)
     amount_text = amount_text and amount_text.upper() or ''

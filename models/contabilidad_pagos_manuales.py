@@ -45,6 +45,21 @@ class transferencia_solicitud(models.Model):
     banco = fields.Char(string="Banco", track_visibility='onchange')
     concepto = fields.Text(string="Concepto", track_visibility='onchange')
     fecha = fields.Date(string="Fecha", default=fields.Datetime.now, track_visibility='onchange')
+    estado = fields.Selection([('draft', 'Borrador'),
+                              ('save', 'Validado'),
+                              ('done', 'Liberado')], default='draft', string="Estado", track_visibility='onchange')
+
+    @api.multi
+    def saver(self):
+        self.write({
+            'estado': 'save'
+        })
+
+    @api.multi
+    def complete(self):
+        self.write({
+            'estado': 'done'
+        })
 
     @api.onchange('nombre')
     def _onchange_nombre(self):

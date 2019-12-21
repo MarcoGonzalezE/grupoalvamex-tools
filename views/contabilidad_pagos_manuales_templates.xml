@@ -23,7 +23,9 @@
                                             <span t-field="o.nombre2"/>
                                         </td>
                                         <td width="100%" align="right">
-                                            <span t-field="o.cantidad" t-options='{"widget": "float", "precision": 2}'/> <!--t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}" />--> <!-- Cantidad -->
+                                            <span t-field="o.cantidad" t-options="{&quot;widget&quot;: &quot;float&quot;, &quot;precision&quot;: 2}"/>
+                                                <!-- t-options='{"widget": "float", "precision": 2}'/> -->
+                                                <!--t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}" />--> <!-- Cantidad -->
                                         </td>
                                     </tr>
                                 </table>
@@ -43,6 +45,39 @@
                             <br/>
                             <br/>
                             <span t-field="o.concepto"/>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+<!-- CHEQUE DOLARES -->
+        <report id="pagos_cheque_dolares" string="Cheque Dolares/Operativo" model="contabilidad.pagos.cheque" report_type="qweb-pdf" name="grupoalvamex_tools.cheque_dolares_document" paperformat="account_check_printing_report_base.paperformat_check"/>
+        <template id="cheque_dolares_document">
+            <t t-call="report.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <div class="page">                    
+                        <div style="padding-top:15mm;">
+                            <!--style="padding-top:20mm;"-->
+                            <div align="center">
+                                <span t-esc="o.fecha"/> <!-- Fecha de pago -->
+                                <br/>
+                            </div>
+                            <div>
+                                <table>
+                                    <tr>
+                                        <td style="padding-left: 2em;" width="88%" align="left">
+                                            <span t-field="o.nombre2"/>
+                                        </td>
+                                        <td style="padding-left: 0.2em;" width="25%" align="center">
+                                            <span t-field="o.cantidad" t-options="{&quot;widget&quot;: &quot;float&quot;, &quot;precision&quot;: 2}"/>
+                                                <!-- t-options='{"widget": "float", "precision": 2}'/> -->
+                                                <!--t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: &quot;o.currency_id&quot;}" />--> <!-- Cantidad -->
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <br/>
+                            <span style="padding-left: 2em;" t-field="o.cantidad_letra"/> <!-- Cantidad en letra -->
                         </div>
                     </div>
                 </t>
@@ -71,9 +106,9 @@
                                     </td>
                                     <td align="center" style="width 100%">
                                         <p align="center">
-                                            <strong><font size="3">AVICAMPO S. de P.R de R.L. de C.V</font><br/>
-                                            KM3.CARRETERA LA BARCA-ATOTONILCO,<br/>
-                                            TELS/FAX 01(393)935-6578, 935-689<br/>
+                                            <strong><font size="3">FORRAJES EL PALMITO S.A. de C.V.</font><br/>
+                                            KM 1. CARRETERA LA BARCA-GUADALAJARA,<br/>
+                                            TEL. 01 (393)9350204, 935 0448, 935 5789, 935 5790<br/>
                                             LA BARCA, JALISCO. C.P. 47910
                                         </strong>
                                     </p>
@@ -83,7 +118,7 @@
                             <tr>
                                 <td colspan="3" align="center">
                                     <br/>
-                                    <p align="center"><strong><u>SOLICITUD DE TRASNFERENCIA</u></strong></p>
+                                    <p align="center"><strong><u>SOLICITUD DE TRANSFERENCIA</u></strong></p>
                                 </td>
                             </tr>
                         </table>
@@ -99,7 +134,7 @@
                             </tr>
                             <tr style="border-bottom: 1px solid black;">
                                 <td style="padding: 15px;">
-                                    <p><strong>TRASFERENCIA A FAVOR DE:</strong></p>
+                                    <p><strong>TRANSFERENCIA A FAVOR DE:</strong></p>
                                 </td>
                                 <td align="center">
                                     <strong><span t-field="o.nombre2"/></strong>
@@ -111,7 +146,7 @@
                                     <p><strong>POR LA CANTIDAD DE:</strong></p>
                                 </td>
                                 <td align="center">
-                                    <strong><span t-field="o.cantidad"/></strong>
+                                    <strong><span t-field="o.cantidad" t-options="{&quot;widget&quot;: &quot;float&quot;, &quot;precision&quot;: 2}"/></strong>
                                 </td>
                                 <td style="width: 20%"/>
                             </tr>
