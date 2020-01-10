@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+		<record id="anular_descontruccion_form_inherited" model="ir.ui.view">
+			<field name="name">Anulacion descontruccion</field>
+			<field name="model">mrp.unbuild</field>
+			<field name="inherit_id" ref="mrp.mrp_unbuild_form_view"/>
+			<field name="arch" type="xml">
+				<xpath expr="//button[@name='action_unbuild']" position="after">
+                    <button name="action_unb_funcion" string="Anular movimientos" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'done'),('anulado','=',True)]}" groups="grupoalvamex_tools.tk_group_functions"/>                    
+                </xpath>
+                <xpath expr="//field[@name='location_dest_id']" position="after">
+                    <field name="anulado" readonly="1"/>
+                </xpath>
+			</field>
+		</record>
+	</data>
+</odoo>

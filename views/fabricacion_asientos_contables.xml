@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<record id="fabricacion_asientos_contables_view_form" model="ir.ui.view">
+			<field name="name">mrp.wizard.contabilidad.form.view</field>
+			<field name="model">mrp.wizard.contabilidad</field>
+			<field name="arch" type="xml">
+				<form>
+					<p><h3>Cambio de fechas de los asientos contables por la fecha de operación.</h3></p>
+					<group>
+						<group>
+							<field name="operacion" widget="radio" options="{'horizontal': true}"/>
+							<field name="fecha_inicio"/>
+						</group>
+						<group>
+							<field name="periodo" options="{'no_create': true}" domain="[('state','=','draft')]"/>
+							<field name="fecha_final"/>
+							<field name="ultimaEjecucion"/>
+						</group>
+					</group>
+					<field name="resultado" attrs="{'invisible': [('resultado','=', False)]}"/>
+					<footer>
+						<button string="Ejecutar" name="action_mrp_funcion" type="object" class="btn-primary"/>
+						<!-- <button name="cancel" string="Cancelar" special="cancel" class="oe_link"/> -->
+					</footer>
+					<div class="oe_chatter">
+                      <style>
+                          .o_chatter_button_new_message {
+                              display: none;
+                          }
+                      </style>
+                      <field name="message_follower_ids" widget="mail_followers"/>
+                      <field name="message_ids" widget="mail_thread"/>
+                  </div>					
+				</form>
+			</field>
+		</record>
+
+		<record id="ac_action_view" model="ir.actions.act_window">
+			<field name="name">Funciones Asientos Contables</field>
+			<field name="res_model">mrp.wizard.contabilidad</field>
+			<field name="context">{'readonly_by_pass': True}</field>
+			<field name="view_mode">tree,form</field>
+			<field name="target">current</field>
+		</record>
+
+<!--MENSAJE -->
+		<!-- <record id="message_wizard_form" model="ir.ui.view">
+			<field name="name">message.wizard.form</field>
+			<field name="model">message.wizard</field>
+			<field name="arch" type="xml">
+				<form>
+					<p class="text-center">
+						<field name="message"/>
+					</p>
+					<footer>
+						<button name="action_ok" string="Ok" type="object" default_focus="1" class="oe_highlight"/>
+					</footer>
+				</form>
+			</field>
+		</record> -->
+
+<!--MENU-->
+		<menuitem id="tools_menu" name="Avicampo Tools" sequence="10" web_icon="grupoalvamex_tools,static/description/icon.png" groups="tk_group_functions"/>
+		<menuitem id="funciones_menu" name="Funciones" parent="tools_menu" sequence="20"/>
+		<menuitem name="Asientos" id="asientos_menu" parent="funciones_menu" action="ac_action_view" sequence="30"/>
+
+	</data>
+</odoo>

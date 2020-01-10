@@ -13,6 +13,8 @@
         Fabricación
             -Costeo \n
             - Costeo de órdenes de Producción
+            - Anulacion de órdemes de Descontruccion
+            - Funciones de fechas de los asientos contables
     """,
 
     'author': "Marco Gonzalez",
@@ -22,10 +24,10 @@
     # Check https://github.com/odoo/odoo/blob/master/odoo/addons/base/module/module_data.xml
     # for the full list
     'category': 'Tools',
-    'version': '0.1',
+    'version': '1.4.3',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','mail','mrp',],
+    'depends': ['base','mail','mrp', 'web_readonly_bypass'],
 
     # always loaded
     'data': [
@@ -35,6 +37,8 @@
         'views/contabilidad_pagos_manuales_views.xml',
         'views/contabilidad_pagos_manuales_templates.xml',
         'views/produccion_costeo_view.xml',
+        'views/fabricacion_descontruccion_asientos_contables.xml',
+        'views/fabricacion_asientos_contables.xml',
     ],
     # only loaded in demonstration mode
     'demo': ['demo/demo.xml'],    
