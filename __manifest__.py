@@ -25,7 +25,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','mail','mrp',],
+    'depends': ['base','mail','mrp','sale'],
 
     # always loaded
     'data': [
@@ -35,6 +35,7 @@
         'views/contabilidad_pagos_manuales_views.xml',
         'views/contabilidad_pagos_manuales_templates.xml',
         'views/produccion_costeo_view.xml',
+        'views/ventas_produccion_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': ['demo/demo.xml'],    

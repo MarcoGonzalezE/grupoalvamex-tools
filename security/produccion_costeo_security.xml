@@ -12,4 +12,21 @@
             <field name="implied_ids" eval="[(4, ref('base.group_user','base.group_system'))]"/>
             <field name="users" eval="[(4, ref('base.user_root'))]"/>
         </record>
+        <!-- grupos de Usarios acceso a Planeacion -->
+       <record id="planeacion_produccion" model="res.groups">
+            <field name="name">Produccion</field>
+            <field name="category_id" ref="module_functions"/>
+            <field name="comment">Solo Usuario</field>
+       </record>
+       <record id="planeacion_pt" model="res.groups">
+            <field name="name">Producto Terminado</field>
+            <field name="category_id" ref="module_functions"/>
+            <field name="comment">Solo Usuario</field>
+       </record>
+       <record id="planeacion_ventas" model="res.groups">
+            <field name="name">Ventas</field>
+            <field name="category_id" ref="module_functions"/>
+            <field name="comment">Solo Usuario</field>
+       </record>
+
 </odoo>
