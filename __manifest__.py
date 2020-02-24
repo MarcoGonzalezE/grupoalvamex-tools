@@ -27,7 +27,7 @@
     'version': '1.4.3',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','mail','mrp', 'web_readonly_bypass'],
+    'depends': ['base','mail','mrp', 'web_readonly_bypass','purchase'],
 
     # always loaded
     'data': [
@@ -39,6 +39,7 @@
         'views/produccion_costeo_view.xml',
         'views/fabricacion_descontruccion_asientos_contables.xml',
         'views/fabricacion_asientos_contables.xml',
+        'views/almacen_general_view.xml'
     ],
     # only loaded in demonstration mode
     'demo': ['demo/demo.xml'],    
