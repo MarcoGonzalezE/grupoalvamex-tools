@@ -17,8 +17,6 @@ class PurchaseOrderAlmacenGeneral(models.Model):
         followers = self.env['mail.followers'].search(
             [('res_model', '=', 'purchase.order'), ('res_id', '=', compra.id)])
         if self.received == 'completed_received' or self.received == 'partial_received':
-            print("Entrando condicion - Recibido Completo")
-            print(compra.id)
             for follow in followers:
                 print(follow.partner_id.name)
                 notificacion_template = self.env['ir.model.data'].sudo().get_object('grupoalvamex_tools', 'notificacion_compra_almacen')
@@ -30,11 +28,5 @@ class PurchaseOrderAlmacenGeneral(models.Model):
                 if self.received == 'partial_received':
                 	values['body_html'] = values['body_html'].replace("_estado_compra_", "Recibido Incompleto")
                 values['email_to'] = follow.partner_id.email
-                send_mail = self.env['mail.mail'].create(values)
+                send_mail = self.env['mail.mail'].sudo().create(values)
                 send_mail.send()
-
-# class AlmacenGeneralEstados(model.Model):
-# 	_name = 'almacen.general.estados'
-
-# 	name = field.Char(required=True, string="Status Almacen General")
-# 	mail_template_id = field.Many2one('mail.template', domain="[('model_id','=','purchase.order')]", string="Mail Template")
