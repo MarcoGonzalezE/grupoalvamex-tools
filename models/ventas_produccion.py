@@ -22,6 +22,7 @@ class ventas_produccion(models.Model):
                                ('cancel', 'Cancelado'),
                                ('final', 'Finalizado')], default='creado', string="Estado", track_visibility='onchange')
     ventas_id = fields.Many2many('sale.order', string="Ventas")
+    aviso = fields.Text(string="Aviso")
 
     #ENVIAR A PRODUCCION
     @api.multi
@@ -58,7 +59,38 @@ class ventas_produccion(models.Model):
     def create(self, vals):
         if vals.get('name', 'Nuevo') == 'Nuevo':
             vals['name'] = self.env['ir.sequence'].next_by_code('ventas.produccion') or "Nuevo"
-        return super(ventas_produccion, self).create(vals)       
+        return super(ventas_produccion, self).create(vals)
+
+    # def comprobar(self):
+    #     query="""Select sol.product_id, sum(sol.product_uom_qty)
+    #             from sale_order so
+    #             inner join sale_order_line sol on sol.order_id = so.id
+    #             where so.id in (%s)
+    #             group by sol.product_id"""
+    #     params = []
+    #     for venta in self.ventas_id:
+    #         venta_or = self.env['sale.order'].search([('id','=', venta.id)])
+    #         venta_lin = self.env['sale.order.line'].search([('order_id', '=', venta_or.id)])
+    #         params.append(venta_or.id)
+    #         print(params)
+    #     self.env.cr.execute(query, tuple(params))
+    #     res = self.env.cr.dictfetchall()
+    #     # for r in res:
+    #     #     inventario = self.env['ventas.produccion.inventario'].search([('name.id','=', r.product_id.id)])
+    #     #     if r.sum < inventario.stock_total:
+    #     #         mensaje = 'No hay suficiente producto en inventario de ' + inventario.name.name
+    #     self.aviso = res
+
+    def comprobar(self):
+        suma = 0
+        count = 1
+        for productos in self.producto:
+            if productos[count].product_id == productos[count].product_id:
+                count += 1
+                suma += productos.product_uom_qty
+            print("Producto:" + str(productos.name))
+            print("Suma:" + str(suma))
+
 
 class sale_order(models.Model):
     _inherit = 'sale.order'
@@ -129,6 +161,96 @@ class VentasPlaneacionProduccion(models.TransientModel):
         #     raise ValidationError(
         #         _('All least one record has an order assigned'))
 
+class VentasProduccionInvetario(models.Model):
+    _name = 'ventas.produccion.inventario'
+    _description = "Inventario de Produccion"
+
+    name = fields.Many2one('product.product', string="Producto")
+    stock = fields.Float(string="Stock", compute="suma_entradas")
+    stock_total = fields.Float(string="Stock Total", compute="stock_totales")
+    entrada_ids = fields.One2many('inventario.entradas', 'entrada_id', string="Entradas de Inventario")
+    info = fields.Float(string="Stock", compute="total_info", store=True)
+    imagen = fields.Binary(string="Imagen", attachment=True)
+    ventas = fields.Float(string="Ventas", compute="suma_ventas")
+
+    @api.one
+    def suma_entradas(self):
+        entradas = self.env['inventario.entradas'].search([('entrada_id','=', self.id)])        
+        print(entradas)
+        suma_stock = 0        
+        if entradas is not None:
+            for rec in entradas:
+                suma_stock += rec.entrada_stock        
+            self.stock = suma_stock
+
+        # try:
+            
+        #     for rec in range(entradas):
+        #         if entradas > 0:
+        #             self.stock = rec.entradas + self.stock
+        #         else:
+        #             self.stock = 0
+        # except ValueError:
+        #     return None
+
+    @api.multi
+    def suma_ventas(self):
+        orden_pv = self.env['ventas.produccion'].search([('estado','=','final')])
+        suma_pv = 0
+        for pv in orden_pv:
+            for venta in pv.ventas_id:
+                venta_or = self.env['sale.order'].search([('id','=', venta.id)])
+                venta_lin = self.env['sale.order.line'].search([('order_id', '=', venta_or.id),('product_id', '=', self.name.id)])
+                for rec in venta_lin:
+                    suma_pv += rec.product_uom_qty
+                self.ventas = suma_pv
+
+    @api.onchange('stock_total')
+    def total_info(self):
+        self.info = self.stock_total
+
+    @api.one
+    @api.depends('stock','ventas')
+    def stock_totales(self):
+        self.stock_total = self.stock - self.ventas
+        
 
 
+    @api.multi
+    def registrar_entrada(self):
+        return{
+            'name': "Registrar Entrada",
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'view_name': 'form',
+            'res_model': 'inventario.entradas',
+            'context': {'default_entrada_id': self.id},
+            'target': 'new'
+        }
 
+#TODO: TRABAJANDO
+    @api.multi
+    def cantidad_producto(self):
+        for venta in self.ventas_id:
+            venta_or = self.env['sale.order'].search([('id','=', venta.id)])
+            venta_lin = self.env['sale.order.line'].search([('order_id','=', venta_or.id)])
+            #for lineas in venta_lin:
+
+
+class InventarioEntradas(models.Model):
+    _name = 'inventario.entradas'
+
+    entrada_id = fields.Many2one('ventas.produccion.inventario', string="Entrada")
+    entrada_stock = fields.Float(string="Cantidad")
+    fecha_entrada = fields.Date(string="Fecha")
+    lote = fields.Char(string="Lote")
+
+    @api.model
+    def create(self, values):
+         return super(InventarioEntradas, self).create(values)
+
+    @api.multi
+    def save(self):
+        """ Used in a wizard-like form view, manual save button when in edit mode """
+        return True
