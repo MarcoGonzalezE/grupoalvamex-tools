@@ -114,6 +114,105 @@
         <menuitem name="Planeacion" id="menu_produccion_planeacion" parent="menu_planeacion" action="ventas_produccion_action"
                   sequence="650"/>
 
+                
+
+<!-- Inventario Produccion -->
+        <record id="ventas_produccion_inventario_view_form" model="ir.ui.view">
+            <field name="name">ventas.produccion.inventario.form</field>
+            <field name="model">ventas.produccion.inventario</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button type="object" name="registrar_entrada" string="Registrar Entrada" class="btn-primary"/>
+                    </header>
+                    <sheet>                        
+                        <div>
+                            <field name="imagen" widget="image" class="oe_avatar"/>
+                            <group>
+                                <group>
+                                    <field name="name"/>
+                                </group>
+                                <group>
+                                    <div>
+                                        <p><h3>STOCK</h3> <field name="stock_total"/></p>
+                                    </div>
+                                </group>
+                            </group>
+                        </div>
+                        <group>
+                            <notebook>
+                                <page string="Entradas">
+                                    <field name="entrada_ids">
+                                        <tree editable="top">
+                                            <field name="fecha_entrada" readonly="1"/>
+                                            <field name="entrada_stock" readonly="1"/>
+                                            <field name="lote" readonly="1"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                            </notebook>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="ventas_produccion_inventario_view_kandan" model="ir.ui.view">
+            <field name="name">ventas.produccion.inventario.kanban.view</field>
+            <field name="model">ventas.produccion.inventario</field>
+            <field name="arch" type="xml">
+                <kanban class="o_res_partner_kanban">
+                    <field name="name"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click">
+                                <div class="o_kanban_image">
+                                    <img t-att-src="kanban_image('ventas.produccion.inventario', 'imagen', record.id.value)"/>
+                                </div>
+                                <div class="oe_kanban_details">
+                                    <strong class="oe_partner_heading"><field name="name"/></strong>
+                                    <!-- <ul>
+                                        <strong><field name="info_stock"/></strong>
+                                    </ul> -->
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="ventas_produccion_inventario_action" model="ir.actions.act_window">
+            <field name="name">Inventario</field>
+            <field name="res_model">ventas.produccion.inventario</field>
+            <field name="view_mode">kanban,form</field>
+            <field name="help" type="html">
+                <p>No se encontro inventario</p>
+            </field>
+        </record>
+
+        <menuitem name="Inventario" id="menu_inventario" parent="menu_planeacion" action="ventas_produccion_inventario_action" sequence="660"/>
+
+<!-- Inventario Entrada -->
+        <record id="inventario_entrada_view_form" model="ir.ui.view">
+          <field name="name">inventario.entrada.form.view</field>
+          <field name="model">inventario.entradas</field>
+          <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="entrada_id" readonly="True"/>
+                    <field name="entrada_stock"/>
+                    <field name="lote"/>
+                    <field name="fecha_entrada"/>
+                </group>
+                <footer>
+                    <button string="Save" class="oe_highlight" name="save" type="object" />
+                    <button string="Cancel" class="oe_highlight" special="cancel" />
+                </footer>
+            </form>
+          </field>
+      </record>
+
     
     </data>
 </odoo>

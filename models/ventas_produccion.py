@@ -61,35 +61,40 @@ class ventas_produccion(models.Model):
             vals['name'] = self.env['ir.sequence'].next_by_code('ventas.produccion') or "Nuevo"
         return super(ventas_produccion, self).create(vals)
 
-    # def comprobar(self):
-    #     query="""Select sol.product_id, sum(sol.product_uom_qty)
-    #             from sale_order so
-    #             inner join sale_order_line sol on sol.order_id = so.id
-    #             where so.id in (%s)
-    #             group by sol.product_id"""
-    #     params = []
-    #     for venta in self.ventas_id:
-    #         venta_or = self.env['sale.order'].search([('id','=', venta.id)])
-    #         venta_lin = self.env['sale.order.line'].search([('order_id', '=', venta_or.id)])
-    #         params.append(venta_or.id)
-    #         print(params)
-    #     self.env.cr.execute(query, tuple(params))
-    #     res = self.env.cr.dictfetchall()
-    #     # for r in res:
-    #     #     inventario = self.env['ventas.produccion.inventario'].search([('name.id','=', r.product_id.id)])
-    #     #     if r.sum < inventario.stock_total:
-    #     #         mensaje = 'No hay suficiente producto en inventario de ' + inventario.name.name
-    #     self.aviso = res
-
+    #TODO: La comprobacion en la orden de planeacion solo muestra la sumatoria de productos
+    #ERROR: Cuando tiene mas de un presupuesto en la pestaña de VENTAS marca error de parametros
+    #IDEA: Con la sumatoria de productos compare con el stock que se tiene actualmente.
     def comprobar(self):
-        suma = 0
-        count = 1
-        for productos in self.producto:
-            if productos[count].product_id == productos[count].product_id:
-                count += 1
-                suma += productos.product_uom_qty
-            print("Producto:" + str(productos.name))
-            print("Suma:" + str(suma))
+        query="""Select pt.name as producto, sum(sol.product_uom_qty) as total
+                from sale_order so
+                inner join sale_order_line sol on sol.order_id = so.id
+                inner join product_product pp on sol.product_id = pp.id
+                inner join product_template pt on pp.product_tmpl_id = pt.id
+                where so.id in (%s)
+                group by sol.product_id, pt.name"""
+        params = []
+        for venta in self.ventas_id:
+            venta_or = self.env['sale.order'].search([('id','=', venta.id)])
+            venta_lin = self.env['sale.order.line'].search([('order_id', '=', venta_or.id)])
+            params.append(venta_or.id)
+            print(params)
+        self.env.cr.execute(query, tuple(params))
+        res = self.env.cr.dictfetchall()
+        # for r in res:
+        #     inventario = self.env['ventas.produccion.inventario'].search([('name.id','=', r.producto)])
+        #     if r.sum < inventario.stock_total:
+        #         mensaje = 'No hay suficiente producto en inventario de ' + inventario.name.name
+        self.aviso = res
+
+    # def comprobar(self):
+    #     suma = 0
+    #     count = 1
+    #     for productos in self.producto:
+    #         if productos[count].product_id == productos[count].product_id:
+    #             count += 1
+    #             suma += productos.product_uom_qty
+    #         print("Producto:" + str(productos.name))
+    #         print("Suma:" + str(suma))
 
 
 class sale_order(models.Model):
