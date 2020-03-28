@@ -111,7 +111,7 @@
                                     <p><strong>POR LA CANTIDAD DE:</strong></p>
                                 </td>
                                 <td align="center">
-                                    <strong><span t-field="o.cantidad"/></strong>
+                                    <strong><span t-field="o.cantidad" t-options='{"widget": "float", "precision": 2}'/></strong>
                                 </td>
                                 <td style="width: 20%"/>
                             </tr>

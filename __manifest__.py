@@ -27,7 +27,7 @@
     'version': '1.4.3',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','mail','mrp', 'web_readonly_bypass','purchase'],
+    'depends': ['base','mail','mrp', 'web_readonly_bypass','purchase','account'],
 
     # always loaded
     'data': [
