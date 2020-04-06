@@ -39,7 +39,9 @@
         'views/produccion_costeo_view.xml',
         'views/fabricacion_descontruccion_asientos_contables.xml',
         'views/fabricacion_asientos_contables.xml',
-        'views/almacen_general_view.xml'
+        'views/almacen_general_view.xml',
+        'wizard/ventas_reporte_wizard.xml',
+        'report/reporte_ventas_template.xml',
     ],
     # only loaded in demonstration mode
     'demo': ['demo/demo.xml'],    

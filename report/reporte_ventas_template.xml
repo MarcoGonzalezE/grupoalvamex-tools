@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="paperformat_reporte_ventas" model="report.paperformat">
+        <field name="name">A4 Landscape Account</field>
+        <field name="default" eval="True"/>
+        <field name="format">custom</field>
+        <field name="page_height">297</field>
+        <field name="page_width">210</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">12</field>
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">9</field>
+        <field name="dpi">110</field>
+    </record>
+
+	<template id="reporte_ventas">
+		<t t-call="report.internal_layout">
+			<t t-set="docs" t-value="docs.with_context()"/>
+			<div class="page" style="font-size:13px">
+				<div class="oe_structure"/>
+				<div align="center">
+					<br/>
+					<h2> Reporte de Ventas</h2>
+				</div>
+				<br/>
+    	 		<table class="table table-striped">
+						<thead>
+						<tr>
+							<th class="col-xs-1">Fecha</th>
+							<th class="col-xs-1">Codigo</th>
+							<th class="col-xs-1">Producto</th>
+							<th class="col-xs-1">U.Facturadas</th>
+							<th class="col-xs-1">Precio Vta./Unidad</th>
+							<th class="col-xs-1">Kgs. Facturados</th>
+							<th class="col-xs-1">Precio Vta./Kg</th>
+							<th class="col-xs-1">Total Facturado</th>
+						</tr>
+						</thead>
+						<tbody>
+							<t t-foreach="invoice" t-as="l">
+								<tr>
+									<td><span t-field="l.date_invoice" /></td>
+									<td><span t-field="l.default_code" /></td>
+									<td><span t-field="l.product" /></td>
+									<td><span t-field="l.invoice_units" /></td>
+									<td><span t-field="l.sale_price_unit" /></td>
+									<td><span t-field="l.invoice_kgs" /></td>
+									<td><span t-field="l.sale_price_kgs" /></td>
+									<td><span t-field="l.invoice_total" /></td>
+								</tr>
+							</t>
+						</tbody>
+				</table>
+				<br/>
+            	<br/>
+				<div style="font-size:13px">
+					<table class="table table-striped">
+						<thead>
+							<tr>
+								<th colspan="2"><center><h2>RESUMEN DE VENTAS</h2></center></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td colspan="2"><center><h4>Avicola</h4></center></td>
+							</tr>
+							<tr>
+								<td><strong>Total Facturado</strong></td>
+								<td><span t-esc="'{0:,.2f}'.format(sum_total_invoiced_poultry)"/></td>
+							</tr>
+							<tr>
+								<td><strong>Total Kilogramos Facturados</strong></td>
+								<td><span t-esc="'{0:,.2f}'.format(sum_total_kgs_poultry)"/></td>
+							</tr>
+							<tr>
+								<td colspan="2"><center><h4>Porcicola</h4></center></td>
+							</tr>
+							<tr>
+								<td><strong>Total Facturado</strong></td>
+								<td><span t-esc="'{0:,.2f}'.format(sum_total_invoiced_pig)"/></td>
+							</tr>
+							<tr>
+								<td><strong>Total Kilogramos Facturados</strong></td>
+								<td><span t-esc="'{0:,.2f}'.format(sum_total_kgs_pig)"/></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+            	<!--<div>
+                	<strong>Total Facturado:
+                    	<span t-esc="'{0:,.2f}'.format(sum_total_invoiced)"/>
+                	</strong>
+				</div>-->
+			</div>
+    	 </t>
+    </template>
+    <data>
+    	<report 
+    		id="action_reporte_ventas"
+    		string="Reporte de Ventas"
+    		model="report.grupoalvamex_tools.reporte_ventas"
+    		report_type="qweb-pdf"
+    		name="grupoalvamex_tools.reporte_ventas"
+    		file="grupoalvamex_tools.reporte_ventas" />
+
+        <record id="action_reporte_ventas" model="ir.actions.report.xml">
+            <field name="paperformat_id" ref="grupoalvamex_tools.paperformat_reporte_ventas"/>
+        </record>
+    </data>
+</odoo>

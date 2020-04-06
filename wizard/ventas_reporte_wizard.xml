@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- VENTANA: Reporte de Ventas -->
+	<record id="reporte_ventas_wizard_form" model="ir.ui.view">
+		<field name="name">reporte.ventas.wizard.form</field>
+		<field name="model">reporte.ventas</field>
+		<field name="arch" type="xml">
+			<form string="Selecciona tipo">
+				<group>
+					<group>
+						<!--<field name="tipo" widget="radio" options="{'horizontal': true}"/>-->
+						<!--<field name="periodo" attrs="{'invisible': [('tipo', '!=', 'periodo')]}"/>-->
+						<field name="fecha_inicio"/>						
+					</group>
+					<group>
+						<field name="fecha_final"/>
+					</group>
+				</group>
+				<group>
+					<field name="reporte_ventas_file" filename="file_name"/>
+					<field name="file_name" invisible="1"/>
+				</group>
+				<footer>
+					<button string="Imprimir PDF" name="imprimirPDF" type="object" class="oe_highlight"/>
+					<button string="Imprimir EXCEL" name="imprimirXLS" type="object" class="oe_highlight"/>
+					<button string="Cancelar" class="btn-default" special="cancel"/>
+				</footer>
+			</form>
+		</field>
+	</record>
+<!-- ACCION: Reporte de Ventas -->
+	<record id="reporte_ventas_wizard_action" model="ir.actions.act_window">
+		<field name="name">Reporte de Ventas</field>
+		<field name="res_model">reporte.ventas</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">form</field>
+		<field name="target">new</field>
+		<field name="view_id" ref="reporte_ventas_wizard_form"/>
+	</record>
+<!-- MENU: Reporte de Ventas -->
+	<menuitem id="reporte_ventas_menu" name="Reporte de Ventas" parent="sales_team.menu_sale_report" sequence="5" action="grupoalvamex_tools.reporte_ventas_wizard_action"/>
+</odoo>
