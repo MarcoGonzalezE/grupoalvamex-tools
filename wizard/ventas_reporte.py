@@ -17,8 +17,11 @@ class ReporteVentas(models.TransientModel):
 	fecha_inicio = fields.Date(string="Fecha Inicial")
 	fecha_final = fields.Date(string="Fecha Final", default=fields.Datetime.now)
 	periodo = fields.Many2one('account.period', string="Periodo")
-	file_name = fields.Char()
-	reporte_ventas_file = fields.Binary('File', readonly=True)
+
+	file_name_xls = fields.Char()
+	file_name_pdf = fields.Char()
+	reporte_ventas_file_xls = fields.Binary('File XLS', readonly=True)
+	reporte_ventas_file_pdf = fields.Binary('File PDF', readonly=True)
 	report_exported = fields.Boolean()
 
 	@api.multi
@@ -31,15 +34,30 @@ class ReporteVentas(models.TransientModel):
 		data['form'].update(self.read(['fecha_inicio','fecha_final'])[0])
 		return self.env['report'].get_action(self,'grupoalvamex_tools.reporte_ventas', data=data)
 
+	# @api.multi
+	# def imprimirPDF(self):
+	# 	self._sql_consulta_ventas_periodo()
+	# 	self.env['reporte.ventas.object'].search([]).unlink()
+	# 	self.parametros()
+	# 	self.render_pdf()
+	# 	return {
+	# 		'view_mode': 'form',
+	# 		'res_id': self.id,
+	# 		'res_model': 'reporte.ventas',
+	# 		'view_type': 'form',
+	# 		'type': 'ir.actions.act_window',
+	# 		'view_id': self.env.ref('grupoalvamex_tools.reporte_ventas_wizard_form').id,
+	# 		'context': self.env.context,
+	# 		'target': 'new',
+	# 	}
+
+
 	@api.multi
 	def imprimirXLS(self):
 		self._sql_consulta_ventas_periodo()
 		self.env['reporte.ventas.object'].search([]).unlink()
 		self.parametros()
 		self.render_xls()
-		for d in self.env['reporte.ventas.object']:
-			print(d.product)
-		print('saliendo')
 		return {
 			'view_mode': 'form',
 			'res_id': self.id,
@@ -64,11 +82,6 @@ class ReporteVentas(models.TransientModel):
 			SELECT * FROM sales_report_period(%s,%s)"""
 		params = [self.fecha_inicio, self.fecha_final]
 		self.env.cr.execute(query, tuple(params))
-
-#TODO: VERIFICACION
-	def verificar(self):
-		invoices = self.env['reporte.ventas.object'].search([('product','=', True)])
-		print (invoices.product)
 
 	def _sql_consulta_ventas_periodo(self):
 		query = """CREATE OR REPLACE FUNCTION public.sales_report_period(x_fecha_inicio date, x_fecha_final date)
@@ -124,10 +137,25 @@ class ReporteVentas(models.TransientModel):
 		self.env['reporte.ventas.object'].search([])
 		rep = self.env['reporte.ventas']
 
+		sum_total_invoiced_poultry = 0
+		sum_total_kgs_poultry = 0
+		sum_total_invoiced_pig = 0
+		sum_total_kgs_pig = 0
+
+		for i in self.env['reporte.ventas.object'].search([]):
+			default_code = i.default_code
+			if "PT41" in str(default_code) or "PT42" in str(default_code):
+				sum_total_invoiced_poultry += i.invoice_total
+				sum_total_kgs_poultry += i.invoice_kgs
+
+			if "PT43" in str(default_code):
+				sum_total_invoiced_pig += i.invoice_total
+				sum_total_kgs_pig += i.invoice_kgs
+
 		workbook = xlwt.Workbook()
 		column_heading_style = easyxf('font:height 200;font:bold True;')
 		worksheet = workbook.add_sheet('Reporte de Ventas')
-		worksheet.write(1,3, 'REPORTE DE VENTAS'),easyxf('font:bold True;align: horiz center;')
+		worksheet.write(1, 3, 'REPORTE DE VENTAS'),easyxf('font:bold True;align: horiz center;')
 		worksheet.write(2, 3, 'Resumen del: '+ str(self.fecha_inicio) + ' al ' + str(self.fecha_final), easyxf('font:height 200;font:bold True;align: horiz center;'))
 		worksheet.write(4, 0, _('Fecha'), column_heading_style)
 		worksheet.write(4, 1, _('Codigo'), column_heading_style)
@@ -138,29 +166,76 @@ class ReporteVentas(models.TransientModel):
 		worksheet.write(4, 6, _('Precio Venta/Kilo'), column_heading_style)
 		worksheet.write(4, 7, _('Total Facturado'), column_heading_style)
 
-		row = 6
+		row = 5
 		resumen = self.env['reporte.ventas.object'].search([])
 		for r in resumen:
 			worksheet.write(row, 0, r.date_invoice)
-			worksheet.write(row, 0, r.default_code)
-			worksheet.write(row, 0, r.product)
-			worksheet.write(row, 0, r.invoice_units)
-			worksheet.write(row, 0, r.sale_price_unit)
-			worksheet.write(row, 0, r.invoice_kgs)
-			worksheet.write(row, 0, r.sale_price_kgs)
-			worksheet.write(row, 0, r.invoice_total)
+			worksheet.write(row, 1, r.default_code)
+			worksheet.write(row, 2, r.product)
+			worksheet.write(row, 3, r.invoice_units)
+			worksheet.write(row, 4, r.sale_price_unit)
+			worksheet.write(row, 5, r.invoice_kgs)
+			worksheet.write(row, 6, r.sale_price_kgs)
+			worksheet.write(row, 7, r.invoice_total)
+			row += 1
+			sig = row
+
+
+		worksheet.write(sig + 1, 1, 'AVICOLA'),easyxf('font:bold True;align: horiz center;')
+		worksheet.write(sig + 2, 0, _('Total Facturado'), column_heading_style)
+		worksheet.write(sig + 2, 1, sum_total_invoiced_poultry)
+		worksheet.write(sig + 3, 0, _('Total Kilogramos Facturados '), column_heading_style)
+		worksheet.write(sig + 3, 1, sum_total_kgs_poultry)
+
+		worksheet.write(sig + 1, 5, 'PORCICOLA'),easyxf('font:bold True;align: horiz center;')
+		worksheet.write(sig + 2, 4, _('Total Facturado'), column_heading_style)
+		worksheet.write(sig + 2, 5, sum_total_invoiced_pig)
+		worksheet.write(sig + 3, 4, _('Total Kilogramos Facturados '), column_heading_style)
+		worksheet.write(sig + 3, 5, sum_total_kgs_pig)
 
 		fp = StringIO()
 		workbook.save(fp)
 		excel_file = base64.encodestring(fp.getvalue())
-		self.reporte_ventas_file = excel_file
-		self.file_name = 'Reporte de Ventas.xls'
+		self.reporte_ventas_file_xls = excel_file
+		self.file_name_xls = 'Reporte de Ventas.xls'
 		self.report_exported = True
 		fp.close()
 
+	# def render_pdf(self):
+	# 	self.model = self.env.context.get('active_model')
+	# 	docs = self.env[self.model].browse(self.env.context.get('active_id'))
+	# 	invoices = self.env['reporte.ventas.object'].search([])
+	# 	if invoices:
+	# 		sum_total_invoiced_poultry = 0
+	# 		sum_total_kgs_poultry = 0
+
+	# 		sum_total_invoiced_pig = 0
+	# 		sum_total_kgs_pig = 0
+
+	# 		for i in invoices:
+	# 			default_code = i.default_code
+	# 			if "PT41" in str(default_code) or "PT42" in str(default_code):
+	# 				sum_total_invoiced_poultry += i.invoice_total
+	# 				sum_total_kgs_poultry += i.invoice_kgs
+	# 			if "PT43" in str(default_code):
+	# 				sum_total_invoiced_pig += i.invoice_total
+	# 				sum_total_kgs_pig += i.invoice_kgs
+
+	# 		docargs = {
+	# 			'docs': docs,
+	# 			'invoice': invoices,
+	# 			'sum_total_invoiced_poultry': sum_total_invoiced_poultry,
+	# 			'sum_total_kgs_poultry': sum_total_kgs_poultry,
+	# 			'sum_total_invoiced_pig': sum_total_invoiced_pig,
+	# 			'sum_total_kgs_pig': sum_total_kgs_pig
+	# 		}
+	# 		return self.env['report'].render('grupoalvamex_tools.reporte_ventas', docargs)
+	# 	else:
+	# 		raise UserError("No se encontraron datos")
+
 
 #TODO: Reporte de Ventas (Datos base)
-class ReporteVentasObject(models.TransientModel):
+class ReporteVentasObject(models.Model):
 	_name = 'reporte.ventas.object'
 
 	date_invoice = fields.Char() #Fecha
@@ -186,7 +261,7 @@ class ReporteVentasPDF(models.AbstractModel):
         self.model = self.env.context.get('active_model')
         docs = self.env[self.model].browse(self.env.context.get('active_id'))
         invoices = self.env['reporte.ventas.object'].search([])
-        print(invoices)
+        dates = self.env['reporte.ventas'].search([], order='id desc', limit=1)
         if invoices:
             #poultry variables
             sum_total_invoiced_poultry = 0
@@ -204,6 +279,9 @@ class ReporteVentasPDF(models.AbstractModel):
             sum_total_kgs_pig = 0
             utility_pig = 0
 
+            fecha_inicio = dates.fecha_inicio
+            fecha_final = dates.fecha_final
+
             for i in invoices:
                 default_code = i.default_code
                 if "PT41" in str(default_code) or "PT42" in str(default_code):
@@ -238,65 +316,13 @@ class ReporteVentasPDF(models.AbstractModel):
               #'sum_total_cost_pig': sum_total_cost_pig,
               #'sum_total_invoiced_minus_cancel_pig': sum_total_invoiced_minus_cancel_pig,
               'sum_total_kgs_pig':sum_total_kgs_pig,
-              'utility_pig': utility_pig
+              'utility_pig': utility_pig,
+              'fecha_inicio': fecha_inicio,
+              'fecha_final': fecha_final
             }
             return self.env['report'].render('grupoalvamex_tools.reporte_ventas', docargs)
         else:
-            #raise UserError("No se encontraron datos")
-
-            #poultry variables
-            sum_total_invoiced_poultry = 0
-            #sum_total_cancel_poultry = 0
-            sum_total_cost_poultry = 0
-            sum_total_invoiced_minus_cancel_poultry = 0
-            sum_total_kgs_poultry = 0
-            utility_poultry = 0
-
-            #pig variables
-            sum_total_invoiced_pig = 0
-            sum_total_cancel_pig = 0
-            #sum_total_cost_pig = 0
-            sum_total_invoiced_minus_cancel_pig = 0
-            sum_total_kgs_pig = 0
-            utility_pig = 0
-
-            for i in invoices:
-                default_code = i.default_code
-                if "PT41" in str(default_code) or "PT42" in str(default_code):
-                    sum_total_invoiced_poultry += i.invoice_total
-                    #sum_total_cancel_poultry += i.cancel_nc
-                    #sum_total_cost_poultry += i.cost_total
-                    #sum_total_invoiced_minus_cancel_poultry += i.invoice_total_nc
-                    sum_total_kgs_poultry += i.invoice_kgs
-
-
-                if "PT43" in str(default_code):
-                    sum_total_invoiced_pig += i.invoice_total
-                    #sum_total_cancel_pig += i.cancel_nc
-                    #sum_total_cost_pig += i.cost_total
-                    #sum_total_invoiced_minus_cancel_pig += i.invoice_total_nc
-                    sum_total_kgs_pig += i.invoice_kgs
-
-            #utility_poultry = sum_total_invoiced_minus_cancel_poultry - sum_total_cost_poultry
-            #utility_pig = sum_total_invoiced_minus_cancel_pig - sum_total_cost_pig
-
-            docargs = {
-              'docs': docs,
-              'invoice': invoices,
-              'sum_total_invoiced_poultry': sum_total_invoiced_poultry,
-              #'sum_total_cancel_poultry': sum_total_cancel_poultry,
-              #'sum_total_cost_poultry': sum_total_cost_poultry,
-              #'sum_total_invoiced_minus_cancel_poultry': sum_total_invoiced_minus_cancel_poultry,
-              'sum_total_kgs_poultry':sum_total_kgs_poultry,
-              'utility_poultry':utility_poultry,
-              'sum_total_invoiced_pig': sum_total_invoiced_pig,
-              #'sum_total_cancel_pig': sum_total_cancel_pig,
-              #'sum_total_cost_pig': sum_total_cost_pig,
-              #'sum_total_invoiced_minus_cancel_pig': sum_total_invoiced_minus_cancel_pig,
-              'sum_total_kgs_pig':sum_total_kgs_pig,
-              'utility_pig': utility_pig
-            }
-            return self.env['report'].render('grupoalvamex_tools.reporte_ventas', docargs)
+            raise UserError("No se encontraron datos")
 
 
 class ReporteVentasXLS(models.TransientModel):

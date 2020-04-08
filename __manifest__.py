@@ -15,6 +15,10 @@
             - Costeo de órdenes de Producción
             - Anulacion de órdemes de Descontruccion
             - Funciones de fechas de los asientos contables
+        Compras
+            - Recepcion en Almacen \n
+        Ventas
+            - Reporte de Ventas \n
     """,
 
     'author': "Marco Gonzalez",

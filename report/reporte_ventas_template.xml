@@ -24,6 +24,7 @@
 				<div align="center">
 					<br/>
 					<h2> Reporte de Ventas</h2>
+					<p><h2> del <span t-esc="fecha_inicio"/> al <span t-esc="fecha_final"/></h2></p>
 				</div>
 				<br/>
     	 		<table class="table table-striped">
@@ -60,22 +61,27 @@
 					<table class="table table-striped">
 						<thead>
 							<tr>
-								<th colspan="2"><center><h2>RESUMEN DE VENTAS</h2></center></th>
+								<th colspan="4"><center><h2>RESUMEN DE VENTAS</h2></center></th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
 								<td colspan="2"><center><h4>Avicola</h4></center></td>
+								<td colspan="2"><center><h4>Porcicola</h4></center></td>
 							</tr>
 							<tr>
 								<td><strong>Total Facturado</strong></td>
 								<td><span t-esc="'{0:,.2f}'.format(sum_total_invoiced_poultry)"/></td>
+								<td><strong>Total Facturado</strong></td>
+								<td><span t-esc="'{0:,.2f}'.format(sum_total_invoiced_pig)"/></td>
 							</tr>
 							<tr>
 								<td><strong>Total Kilogramos Facturados</strong></td>
 								<td><span t-esc="'{0:,.2f}'.format(sum_total_kgs_poultry)"/></td>
+								<td><strong>Total Kilogramos Facturados</strong></td>
+								<td><span t-esc="'{0:,.2f}'.format(sum_total_kgs_pig)"/></td>
 							</tr>
-							<tr>
+							<!-- <tr>
 								<td colspan="2"><center><h4>Porcicola</h4></center></td>
 							</tr>
 							<tr>
@@ -85,7 +91,7 @@
 							<tr>
 								<td><strong>Total Kilogramos Facturados</strong></td>
 								<td><span t-esc="'{0:,.2f}'.format(sum_total_kgs_pig)"/></td>
-							</tr>
+							</tr> -->
 						</tbody>
 					</table>
 				</div>

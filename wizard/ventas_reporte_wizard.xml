@@ -17,8 +17,10 @@
 					</group>
 				</group>
 				<group>
-					<field name="reporte_ventas_file" filename="file_name"/>
-					<field name="file_name" invisible="1"/>
+					<field name="reporte_ventas_file_xls" filename="file_name_xls" attrs="{'invisible': [('reporte_ventas_file_xls', '=', False)]}"/>
+					<field name="file_name_xls" invisible="1"/>
+					<field name="reporte_ventas_file_pdf" filename="file_name_pdf" attrs="{'invisible': [('reporte_ventas_file_pdf', '=', False)]}"/>
+					<field name="file_name_pdf" invisible="1"/>
 				</group>
 				<footer>
 					<button string="Imprimir PDF" name="imprimirPDF" type="object" class="oe_highlight"/>
