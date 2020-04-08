@@ -71,8 +71,7 @@ class ReporteVentas(models.TransientModel):
 
 	def parametros(self):
 		query = """INSERT INTO reporte_ventas_object
-			(date_invoice,
-			default_code,
+			(default_code,
 			product,
 			invoice_units,
 			sale_price_unit,
@@ -85,8 +84,7 @@ class ReporteVentas(models.TransientModel):
 
 	def _sql_consulta_ventas_periodo(self):
 		query = """CREATE OR REPLACE FUNCTION public.sales_report_period(x_fecha_inicio date, x_fecha_final date)
-			RETURNS TABLE(fecha date, 
-				sku character varying, 
+			RETURNS TABLE(sku character varying, 
 				producto character varying, 
 				unidades_facturadas numeric, 
 				precio_vta_unidad numeric,
@@ -98,8 +96,7 @@ class ReporteVentas(models.TransientModel):
 
 			BEGIN
 				CREATE TEMP TABLE CONSULTA_VENTAS ON COMMIT DROP AS(
-				SELECT 	
-				ai.date_invoice as FECHA,
+				SELECT 
 				pt.default_code as SKU,
 				pt.name as PRODUCTO,
 				round(sum(aml.quantity),2) as UNIDADES_FACTURADAS,	   
@@ -117,8 +114,9 @@ class ReporteVentas(models.TransientModel):
 				left join sale_order so on so.name  = ai.origin and so.state <> 'cancel'			
 				left join sale_order_line sol on sol.order_id = so.id and sol.qty_invoiced = aml.quantity and sol.price_subtotal = aml.credit
 				where aa.user_type_id = 14 and sol.warehouse_id is not null 
-				group by ap.name,aa.code,am.date,pt.default_code,pt.name,aa.user_type_id,am.state,ai.date_invoice
-				having ai.date_invoice between x_fecha_inicio and x_fecha_final and am.state = 'posted'  and (pt.default_code like 'PT%' or pt.default_code is null)
+				and ai.date_invoice between x_fecha_inicio and x_fecha_final
+				group by pt.default_code, pt.name, am.state
+				having am.state = 'posted'  and (pt.default_code like 'PT%' or pt.default_code is null)
 				order by pt.default_code asc
 				);
 
@@ -157,26 +155,26 @@ class ReporteVentas(models.TransientModel):
 		worksheet = workbook.add_sheet('Reporte de Ventas')
 		worksheet.write(1, 3, 'REPORTE DE VENTAS'),easyxf('font:bold True;align: horiz center;')
 		worksheet.write(2, 3, 'Resumen del: '+ str(self.fecha_inicio) + ' al ' + str(self.fecha_final), easyxf('font:height 200;font:bold True;align: horiz center;'))
-		worksheet.write(4, 0, _('Fecha'), column_heading_style)
-		worksheet.write(4, 1, _('Codigo'), column_heading_style)
-		worksheet.write(4, 2, _('Producto'), column_heading_style)
-		worksheet.write(4, 3, _('Unidades Facturadas'), column_heading_style)
-		worksheet.write(4, 4, _('Precio Venta/Unidad'), column_heading_style)
-		worksheet.write(4, 5, _('Kg. Facturados'), column_heading_style)
-		worksheet.write(4, 6, _('Precio Venta/Kilo'), column_heading_style)
-		worksheet.write(4, 7, _('Total Facturado'), column_heading_style)
+		#worksheet.write(4, 0, _('Fecha'), column_heading_style)
+		worksheet.write(4, 0, _('Codigo'), column_heading_style)
+		worksheet.write(4, 1, _('Producto'), column_heading_style)
+		worksheet.write(4, 2, _('Unidades Facturadas'), column_heading_style)
+		worksheet.write(4, 3, _('Precio Venta/Unidad'), column_heading_style)
+		worksheet.write(4, 4, _('Kg. Facturados'), column_heading_style)
+		worksheet.write(4, 5, _('Precio Venta/Kilo'), column_heading_style)
+		worksheet.write(4, 6, _('Total Facturado'), column_heading_style)
 
 		row = 5
 		resumen = self.env['reporte.ventas.object'].search([])
 		for r in resumen:
-			worksheet.write(row, 0, r.date_invoice)
-			worksheet.write(row, 1, r.default_code)
-			worksheet.write(row, 2, r.product)
-			worksheet.write(row, 3, r.invoice_units)
-			worksheet.write(row, 4, r.sale_price_unit)
-			worksheet.write(row, 5, r.invoice_kgs)
-			worksheet.write(row, 6, r.sale_price_kgs)
-			worksheet.write(row, 7, r.invoice_total)
+			#worksheet.write(row, 0, r.date_invoice)
+			worksheet.write(row, 0, r.default_code)
+			worksheet.write(row, 1, r.product)
+			worksheet.write(row, 2, r.invoice_units)
+			worksheet.write(row, 3, r.sale_price_unit)
+			worksheet.write(row, 4, r.invoice_kgs)
+			worksheet.write(row, 5, r.sale_price_kgs)
+			worksheet.write(row, 6, r.invoice_total)
 			row += 1
 			sig = row
 
@@ -238,7 +236,7 @@ class ReporteVentas(models.TransientModel):
 class ReporteVentasObject(models.Model):
 	_name = 'reporte.ventas.object'
 
-	date_invoice = fields.Char() #Fecha
+	#date_invoice = fields.Char() #Fecha
 	default_code = fields.Char() #Codigo del Producto
 	product = fields.Char() #Producto
 	invoice_units = fields.Float() #Unidades Facturadas

@@ -22,7 +22,6 @@
 			<div class="page" style="font-size:13px">
 				<div class="oe_structure"/>
 				<div align="center">
-					<br/>
 					<h2> Reporte de Ventas</h2>
 					<p><h2> del <span t-esc="fecha_inicio"/> al <span t-esc="fecha_final"/></h2></p>
 				</div>
@@ -30,7 +29,7 @@
     	 		<table class="table table-striped">
 						<thead>
 						<tr>
-							<th class="col-xs-1">Fecha</th>
+							<!-- <th class="col-xs-1">Fecha</th> -->
 							<th class="col-xs-1">Codigo</th>
 							<th class="col-xs-1">Producto</th>
 							<th class="col-xs-1">U.Facturadas</th>
@@ -43,7 +42,7 @@
 						<tbody>
 							<t t-foreach="invoice" t-as="l">
 								<tr>
-									<td><span t-field="l.date_invoice" /></td>
+									<!-- <td><span t-field="l.date_invoice" /></td> -->
 									<td><span t-field="l.default_code" /></td>
 									<td><span t-field="l.product" /></td>
 									<td><span t-field="l.invoice_units" /></td>

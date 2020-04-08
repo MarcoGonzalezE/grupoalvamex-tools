@@ -16,7 +16,7 @@
 						<field name="fecha_final"/>
 					</group>
 				</group>
-				<group>
+				<group attrs="{'invisible': [('reporte_ventas_file_xls', '=', False)]}">
 					<field name="reporte_ventas_file_xls" filename="file_name_xls" attrs="{'invisible': [('reporte_ventas_file_xls', '=', False)]}"/>
 					<field name="file_name_xls" invisible="1"/>
 					<field name="reporte_ventas_file_pdf" filename="file_name_pdf" attrs="{'invisible': [('reporte_ventas_file_pdf', '=', False)]}"/>
