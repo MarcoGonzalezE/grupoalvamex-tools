@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- VENTANA: Reporte de Ventas -->
+	<record id="reporte_clientes_saldos_wizard_form" model="ir.ui.view">
+		<field name="name">reporte.clientes.saldos.wizard.form</field>
+		<field name="model">reporte.clientes.saldos</field>
+		<field name="arch" type="xml">
+			<form>
+				<group>
+					<group>
+						<field name="fecha_inicio"/>						
+					</group>
+					<group>
+						<field name="fecha_final"/>
+					</group>
+				</group>
+				<!-- <group attrs="{'invisible': [('reporte_ventas_file_xls', '=', False)]}">
+					<field name="reporte_ventas_file_xls" filename="file_name_xls" attrs="{'invisible': [('reporte_ventas_file_xls', '=', False)]}"/>
+					<field name="file_name_xls" invisible="1"/>
+					<field name="reporte_ventas_file_pdf" filename="file_name_pdf" attrs="{'invisible': [('reporte_ventas_file_pdf', '=', False)]}"/>
+					<field name="file_name_pdf" invisible="1"/>
+				</group> -->
+				<footer>
+					<!-- <button string="Imprimir PDF" name="imprimirPDF" type="object" class="oe_highlight"/>
+					<button string="Imprimir EXCEL" name="imprimirXLS" type="object" class="oe_highlight"/> -->
+					<button string="Cancelar" class="btn-default" special="cancel"/>
+				</footer>
+			</form>
+		</field>
+	</record>
+<!-- ACCION: Reporte de Ventas -->
+	<record id="reporte_clientes_saldos_wizard_action" model="ir.actions.act_window">
+		<field name="name">Reporte de Clientes</field>
+		<field name="res_model">reporte.clientes.saldos</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">form</field>
+		<field name="target">new</field>
+		<field name="view_id" ref="reporte_clientes_saldos_wizard_form"/>
+	</record>
+<!-- MENU: Reporte de Ventas -->
+	<menuitem id="reporte_clientes_menu" name="Reporte de Clientes-Saldos" parent="sales_team.menu_sale_report" sequence="6" action="grupoalvamex_tools.reporte_clientes_saldos_wizard_action"/>
+</odoo>

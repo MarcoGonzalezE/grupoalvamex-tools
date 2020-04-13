@@ -45,6 +45,7 @@
         'views/fabricacion_asientos_contables.xml',
         'views/almacen_general_view.xml',
         'wizard/ventas_reporte_wizard.xml',
+        'wizard/ventas_clientes_saldo_wizard.xml',
         'report/reporte_ventas_template.xml',
     ],
     # only loaded in demonstration mode

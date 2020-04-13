@@ -41,8 +41,8 @@ class MkOP(models.Model):
                         _cargos := (select sum(debit) from account_move_line where name = $1 and product_id <> r.product_id);
                         _move_id := (select id from stock_move  where origin = $1 and round(product_qty,4) = round(r.product_qty,4) and product_id = r.product_id);
                         _quant_id := (select quant_id  FROM stock_quant_move_rel where move_id = _move_id);
-                        _cost = _cargos / r.product_qty;          
-                        update stock_quant set cost = _cost where id = _quant_id;
+                        _cost = _cargos / r.product_qty;
+                        update stock_quant set cost = _cost where id in (_quant_id);
                         update account_move_line set debit = _cargos 
                         where id in (select id from account_move_line  where name = $1 and round(quantity,4) = round(r.product_qty,4) and product_id = r.product_id
                                      and debit <> 0.0);

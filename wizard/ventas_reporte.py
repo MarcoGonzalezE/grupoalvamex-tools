@@ -96,28 +96,24 @@ class ReporteVentas(models.TransientModel):
 
 			BEGIN
 				CREATE TEMP TABLE CONSULTA_VENTAS ON COMMIT DROP AS(
-				SELECT 
+				SELECT
 				pt.default_code as SKU,
 				pt.name as PRODUCTO,
-				round(sum(aml.quantity),2) as UNIDADES_FACTURADAS,	   
-				round((sum(aml.credit) / sum(aml.quantity)),2) as PRECIO_VENTA_POR_UNIDAD,		   
+				sum(ail.quantity) UNIDADES_FACTURADAS,
+				round((sum(ail.amount_subtotal) / sum(ail.quantity)),2) as PRECIO_VENTA_POR_UNIDAD,
 				sum(cast(sol.kilograms as numeric)) as KILOGRAMOS_FACTURADOS,
-				round((sum(aml.credit) / NULLIF(sum(cast(sol.kilograms as numeric)),0)),2) as PRECIO_VENTA_POR_KILOGRAMO,
-				round(sum(aml.credit),2) as FACTURADO_TOTAL_$
-				from account_move_line aml
-				left join product_product pp on pp.id = aml.product_id
-				left join product_template pt on pt.id = pp.product_tmpl_id
-				left join account_account aa on aa.id = aml.account_id
-				left join account_move am on am.id = aml.move_id
-				left join account_period ap on ap.id = aml.period_id
-				left join account_invoice ai on ai.id = aml.invoice_id and (ai.state = 'open' or ai.state='paid')
-				left join sale_order so on so.name  = ai.origin and so.state <> 'cancel'			
-				left join sale_order_line sol on sol.order_id = so.id and sol.qty_invoiced = aml.quantity and sol.price_subtotal = aml.credit
-				where aa.user_type_id = 14 and sol.warehouse_id is not null 
-				and ai.date_invoice between x_fecha_inicio and x_fecha_final
-				group by pt.default_code, pt.name, am.state
-				having am.state = 'posted'  and (pt.default_code like 'PT%' or pt.default_code is null)
-				order by pt.default_code asc
+				round((sum(ail.amount_subtotal) / NULLIF(sum(cast(sol.kilograms as numeric)),0)),2) as PRECIO_VENTA_POR_KILOGRAMO,
+				round(sum(ail.amount_subtotal),2) as FACTURADO_TOTAL_$
+				from account_invoice ai
+				inner join account_invoice_line ail on ai.id = ail.invoice_id
+				inner join product_product pp on pp.id = ail.product_id
+				inner join product_template pt on pt.id = pp.product_tmpl_id
+				inner join sale_order_line_invoice_rel rel on rel.invoice_line_id  = ail.id
+				inner join sale_order_line sol on sol.id = rel.order_line_id
+				where ai.date between x_fecha_inicio and x_fecha_final and (ai.state = 'open' or ai.state = 'paid')
+				and pt.default_code like 'PT%'
+				group by pt.default_code,pt.name
+				order by pt.default_code
 				);
 
 				RETURN QUERY
@@ -176,7 +172,7 @@ class ReporteVentas(models.TransientModel):
 			worksheet.write(row, 5, r.sale_price_kgs)
 			worksheet.write(row, 6, r.invoice_total)
 			row += 1
-			sig = row
+		sig = row
 
 
 		worksheet.write(sig + 1, 1, 'AVICOLA'),easyxf('font:bold True;align: horiz center;')
