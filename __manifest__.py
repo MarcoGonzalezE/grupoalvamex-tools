@@ -31,7 +31,7 @@
     'version': '1.4.3',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','mail','mrp', 'web_readonly_bypass','purchase','account'],
+    'depends': ['base','mail','mrp', 'web_readonly_bypass','purchase','account', 'account_financial_report_qweb'],
 
     # always loaded
     'data': [
