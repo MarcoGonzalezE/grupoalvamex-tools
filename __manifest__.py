@@ -47,6 +47,7 @@
         'wizard/ventas_reporte_wizard.xml',
         'wizard/ventas_clientes_saldo_wizard.xml',
         'report/reporte_ventas_template.xml',
+        'report/reporte_clientes_template.xml',
     ],
     # only loaded in demonstration mode
     'demo': ['demo/demo.xml'],    

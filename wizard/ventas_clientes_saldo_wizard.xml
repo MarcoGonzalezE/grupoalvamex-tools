@@ -18,6 +18,7 @@
 						<field name="show_partner_details"/>
 						<field name="receivable_accounts_only"/>
 						<field name="account_ids" widget="many2many_tags" options="{'no_create': True}"/>
+						<field name="target_move" widget="radio"/>
 					</group>
 				</group>
 				<!-- <group attrs="{'invisible': [('reporte_ventas_file_xls', '=', False)]}">
