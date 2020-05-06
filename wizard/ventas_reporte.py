@@ -56,6 +56,8 @@ class ReporteVentas(models.TransientModel):
 	def imprimirXLS(self):
 		self._sql_consulta_ventas_periodo()
 		self.env['reporte.ventas.object'].search([]).unlink()
+		self._sql_consulta_facturas_periodo()
+		self.env['reporte.facturas.object'].search([]).unlink()
 		self.parametros()
 		self.render_xls()
 		return {
@@ -79,8 +81,19 @@ class ReporteVentas(models.TransientModel):
 			sale_price_kgs,
 			invoice_total)
 			SELECT * FROM sales_report_period(%s,%s)"""
+		query_fact = """INSERT INTO reporte_facturas_object
+			(invoice,
+			default_code,
+			product,
+			invoice_units,
+			sale_price_unit,
+			invoice_kgs,
+			sale_price_kgs,
+			invoice_total)
+			SELECT * FROM invoice_report_period(%s,%s)"""
 		params = [self.fecha_inicio, self.fecha_final]
 		self.env.cr.execute(query, tuple(params))
+		self.env.cr.execute(query_fact, tuple(params))
 
 	def _sql_consulta_ventas_periodo(self):
 		query = """CREATE OR REPLACE FUNCTION public.sales_report_period(x_fecha_inicio date, x_fecha_final date)
@@ -127,8 +140,56 @@ class ReporteVentas(models.TransientModel):
 			LANGUAGE plpgsql VOLATILE"""
 		self.env.cr.execute(query)
 
+	def _sql_consulta_facturas_periodo(self):
+		query = """CREATE OR REPLACE FUNCTION public.invoice_report_period(x_fecha_inicio date, x_fecha_final date)
+			RETURNS TABLE(factura character varying,
+				sku character varying, 
+				producto character varying, 
+				unidades_facturadas numeric, 
+				precio_vta_unidad numeric,
+				kgs_facturados numeric, 
+				precio_vta_kg numeric,
+				facturado_total numeric) AS
+			$BODY$
+			DECLARE
+
+			BEGIN
+				CREATE TEMP TABLE CONSULTA_FACTURAS ON COMMIT DROP AS(
+				SELECT
+				ai.number as FACTURA,
+				pt.default_code as SKU,
+				pt.name as PRODUCTO,
+				sum(ail.quantity) UNIDADES_FACTURADAS,
+				round((sum(ail.amount_subtotal) / sum(ail.quantity)),2) as PRECIO_VENTA_POR_UNIDAD,
+   				sum(cast(sol.kilograms as numeric)) as KILOGRAMOS_FACTURADOS,
+   				round((sum(ail.amount_subtotal) / NULLIF(sum(cast(sol.kilograms as numeric)),0)),2) as PRECIO_VENTA_POR_KILOGRAMO,
+   				round(sum(ail.amount_subtotal),2) as FACTURADO_TOTAL_$
+   				from account_invoice ai
+   				inner join account_invoice_line ail on ai.id = ail.invoice_id
+   				inner join product_product pp on pp.id = ail.product_id
+   				inner join product_template pt on pt.id = pp.product_tmpl_id
+   				inner join sale_order_line_invoice_rel rel on rel.invoice_line_id  = ail.id
+   				inner join sale_order_line sol on sol.id = rel.order_line_id
+   				where ai.date between x_fecha_inicio and x_fecha_final and (ai.state = 'open' or ai.state = 'paid')
+   				and pt.default_code like 'PT%'
+   				group by ai.number,pt.default_code,pt.name
+   				order by pt.default_code
+   				);
+
+   				RETURN QUERY
+
+   				SELECT *
+   				FROM CONSULTA_FACTURAS q
+   				order by q.factura;
+
+   			END;
+   			$BODY$
+   			LANGUAGE plpgsql VOLATILE"""
+		self.env.cr.execute(query)
+
 	def render_xls(self):
 		self.env['reporte.ventas.object'].search([])
+		self.env['reporte.facturas.object'].search([])
 		rep = self.env['reporte.ventas']
 
 		sum_total_invoiced_poultry = 0
@@ -186,6 +247,30 @@ class ReporteVentas(models.TransientModel):
 		worksheet.write(sig + 2, 5, sum_total_invoiced_pig)
 		worksheet.write(sig + 3, 4, _('Total Kilogramos Facturados '), column_heading_style)
 		worksheet.write(sig + 3, 5, sum_total_kgs_pig)
+
+		#FACTURAS
+		worksheet_f = workbook.add_sheet('Reporte de Facturas')
+		worksheet_f.write(1, 3, 'FACTURAS'),easyxf('font:bold True;align: horiz center;')
+		worksheet_f.write(2, 0, _('Factura'), column_heading_style)
+		worksheet_f.write(2, 1, _('Codigo'), column_heading_style)
+		worksheet_f.write(2, 2, _('Producto'), column_heading_style)
+		worksheet_f.write(2, 3, _('Unidades Facturadas'), column_heading_style)
+		worksheet_f.write(2, 4, _('Precio Venta/Unidad'), column_heading_style)
+		worksheet_f.write(2, 5, _('Kg. Facturados'), column_heading_style)
+		worksheet_f.write(2, 6, _('Precio Venta/Kilo'), column_heading_style)
+		worksheet_f.write(2, 7, _('Total Facturado'), column_heading_style)
+		row = 3
+		resumen_f = self.env['reporte.facturas.object'].search([])
+		for r in resumen_f:
+			worksheet_f.write(row, 0, r.invoice)
+			worksheet_f.write(row, 1, r.default_code)
+			worksheet_f.write(row, 2, r.product)
+			worksheet_f.write(row, 3, r.invoice_units)
+			worksheet_f.write(row, 4, r.sale_price_unit)
+			worksheet_f.write(row, 5, r.invoice_kgs)
+			worksheet_f.write(row, 6, r.sale_price_kgs)
+			worksheet_f.write(row, 7, r.invoice_total)
+			row += 1
 
 		fp = StringIO()
 		workbook.save(fp)
@@ -245,6 +330,19 @@ class ReporteVentasObject(models.Model):
 	#cancel_nc = fields.Float()
 	#invoice_total_nc = fields.Float()
 	#cost_total = fields.Float()
+
+#TODO: Reporte de Facturas (Datos Base)
+class ReporteFacturasObject(models.Model):
+	_name = 'reporte.facturas.object'
+
+	invoice = fields.Char() #Factura
+	default_code = fields.Char() #Codigo del Producto
+	product = fields.Char() #Producto
+	invoice_units = fields.Float() #Unidades Facturadas
+	sale_price_unit = fields.Float() #Precio de Venta por Unidad
+	invoice_kgs = fields.Float() #Kilogramos Facturados
+	sale_price_kgs = fields.Float() #Precio de Venta por Kilo
+	invoice_total = fields.Float() #Total Facturado
 
 #TODO: Reporte de Ventas PDF
 class ReporteVentasPDF(models.AbstractModel):
