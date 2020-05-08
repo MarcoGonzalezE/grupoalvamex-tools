@@ -11,6 +11,12 @@ class MkOP(models.Model):
 
 
     name = fields.Char()
+    product_id = fields.Many2one()
+    picking_type_id = fields.Many2one()
+    location_src_id = fields.Many2one()
+    location_dest_id = fields.Many2one()
+    state = fields.Selection()
+
     orden_producion_costear = fields.Char('Orden de Produccion', compute="_compute_orden")
     state = fields.Selection()
     costeado = fields.Boolean(string="Costeado")
@@ -63,21 +69,29 @@ class MkOP(models.Model):
         res = self.env.cr.dictfetchall()
         print (res)
 
- # Miscelanea Modulo de fabricacion-------------------------------------------
-class fabricacion_miscelanea(models.Model):
+
+    @api.depends('product_id')
+    def asignar_misc(self):
+        #product = self.env['fabricacion.miscelanea.product.product.rel'].search([('product_product_id','=', self.product_id)])
+        if self.state == 'confirmed':
+            misc = self.env['fabricacion.miscelanea'].search([('productos','=', self.product_id.id)])
+            if misc.id is not False:
+                for p in misc:
+                    if p.productos == self.product_id:
+                        self.picking_type_id = p.ta
+                        self.location_src_id = p.mp
+                        self.location_dest_id = p.pf
+            else:
+                raise ValidationError(_(self.product_id.name + ' NO ESTA REGISTRADO EN MISCELANEA'))
+        else:
+            raise ValidationError(_('La Orden de Produccion se encuentra en proceso, finalizada o cancelada'))
+
+ # Miscelanea Modulo de fabricacion
+class FabricacionMiscelanea(models.Model):
     _name = 'fabricacion.miscelanea'
-    name = fields.Many2one('stock.picking.type', string="Típo de Albaran")
+
+    name = fields.Char(string="Nombre")
+    ta = fields.Many2one('stock.picking.type', string="Tipo de albarán")
     mp = fields.Many2one('stock.location', string="Ubicación Materias Primas")
     pf = fields.Many2one('stock.location', string="Ubicación de Productos Finalizados")
     productos = fields.Many2many('product.product', string="Productos")
-
-
-
-
-
-
-
-
-
-
-

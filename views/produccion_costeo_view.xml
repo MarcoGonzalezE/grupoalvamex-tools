@@ -9,6 +9,9 @@
                 <xpath expr="//button[@name='button_scrap']" position="after">
                     <button name="action_op_funtion" string="Costear" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'done'),('costeado','=',True)]}" groups="grupoalvamex_tools.tk_group_functions"/>                    
                 </xpath>
+                <xpath expr="//button[@name='button_scrap']" position="after">
+                    <button name="asignar_misc" string="Asignar Miscelanea" type="object" class="oe_highlight" attrs="{'invisible': [('state','!=', 'confirmed')]}" groups="grupoalvamex_tools.tk_group_functions"/>                    
+                </xpath>
                 <xpath expr="//field[@name='product_id']" position="after">
                     <field name="orden_producion_costear" invisible="1"/>
                 </xpath>
@@ -45,28 +48,27 @@
             </field>
         </record>
 
-         <!-- form Miscelanea-->
+<!-- form Miscelanea-->
         <record id="fabricacion_miscelanea_form" model="ir.ui.view">
             <field name="name">fabricacion.miscelanea.form.view</field>
             <field name="model">fabricacion.miscelanea</field>
             <field name="arch" type="xml">
                 <form string="Miscelanea">
                     <sheet>
-                            <group>
-                                <group>
-                                <field name="name"/>
-                                <field name="mp"/>
-                                <field name="pf"/>
-                                </group>
-                                 <group>
-                                     <field name="productos" widget="many2many_list"/>
-                                 </group>
-
-                            </group>
+                        <field name="name"/>
+                        <group>
+                            <field name="ta"/>
+                            <field name="mp"/>
+                            <field name="pf"/>
+                        </group>
+                        <group>
+                            <field name="productos"/> <!--widget="many2many_list"/>-->
+                        </group>
                     </sheet>
                 </form>
             </field>
         </record>
+
         <menuitem name="Miscelanea" id="fabricacion_miscelanea" parent="mrp.menu_mrp_bom" sequence="310" action="miscelanea_action"/>
 
 
