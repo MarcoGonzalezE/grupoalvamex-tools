@@ -31,15 +31,15 @@
             <field name="arch" type="xml">
                 <form string="Planeacion"><!--edit="false"-->
                     <header>
-                        <button string="VALIDAR SALIDA" type="object"  name="check_aprobado" attrs="{'invisible':['|',('enviado_pt','=',True),('estado','!=','aceptado')]}" groups="grupoalvamex_tools.planeacion_ventas"/><b/>
+<!--                        <button string="VALIDAR SALIDA" type="object"  name="check_aprobado" attrs="{'invisible':['|',('enviado_pt','=',True),('estado','!=','aceptado')]}" groups="grupoalvamex_tools.planeacion_ventas"/><b/>-->
 
-                        <button string="ENVIAR A PRODUCCION" type="object" class="oe_highlight" name="enviado" attrs="{'invisible':[('estado','!=','creado')]}" groups="grupoalvamex_tools.planeacion_ventas"/><b/>
-                        
-                        <button string="CANCELAR" type="object" spclass="btn btn-danger" name="cancelado" attrs="{'invisible':['|',('estado','=','final'),('estado','=','cancel')]}"/><b/>
-                        
-                        <button string="ACEPTAR PEDIDO" type="object" class="oe_highlight" name="aceptado" groups="grupoalvamex_tools.planeacion_produccion" attrs="{'invisible':[('estado','!=','enviado')]}"/><b/>
-                        
-                        <button string="TERMINAR" type="object" class="oe_highlight" name="listo" attrs="{'invisible':[('estado','!=','aceptado')]}" groups="grupoalvamex_tools.planeacion_pt"/><b/>
+<!--                        <button string="ENVIAR A PRODUCCION" type="object" class="oe_highlight" name="enviado" attrs="{'invisible':[('estado','!=','creado')]}" groups="grupoalvamex_tools.planeacion_ventas"/><b/>-->
+<!--                        -->
+<!--                        <button string="CANCELAR" type="object" spclass="btn btn-danger" name="cancelado" attrs="{'invisible':['|',('estado','=','final'),('estado','=','cancel')]}"/><b/>-->
+<!--                        -->
+<!--                        <button string="ACEPTAR PEDIDO" type="object" class="oe_highlight" name="aceptado" groups="grupoalvamex_tools.planeacion_produccion" attrs="{'invisible':[('estado','!=','enviado')]}"/><b/>-->
+<!--                        -->
+                        <button string="CONFIRMAR PEDIDO A PRODUCCION" type="object" class="oe_highlight" name="listo"/><b/>
                         <field name="estado" widget="statusbar" class="oe_highlight"/>
                         <button string="Comprobar disponibilidad" type="object" class="oe_highlight" name="comprobar"/>
                     </header>
@@ -133,6 +133,10 @@
                                     <field name="name"/>
                                 </group>
                                 <group>
+                                    <field name="s_min"/>
+                                    <field name="s_fal" readonly="1"/>
+                                </group>
+                                <group>
                                     <div>
                                         <p><h3>STOCK</h3> <field name="stock_total"/></p>
                                     </div>
@@ -147,6 +151,7 @@
                                             <field name="fecha_entrada" readonly="1"/>
                                             <field name="entrada_stock" readonly="1"/>
                                             <field name="lote" readonly="1"/>
+                                            <field name="nota" readonly="1"/>
                                         </tree>
                                     </field>
                                 </page>
@@ -181,6 +186,20 @@
                 </kanban>
             </field>
         </record>
+<!--- Pedido PT Tree -->
+        <record id="pedido_pt_tree" model="ir.ui.view">
+            <field name="name">ventas.produccion.inventario.tree.view</field>
+            <field name="model">ventas.produccion.inventario</field>
+            <field name="arch" type="xml">
+                <tree string="Inventario Info" edit="false" create="false">
+                    <field name="name"/>
+                    <field name="s_min"/>
+                    <field name="stock_total"/>
+                    <field name="s_fal"/>
+                </tree>
+            </field>
+        </record>
+
 
         <record id="ventas_produccion_inventario_action" model="ir.actions.act_window">
             <field name="name">Inventario</field>
@@ -190,8 +209,17 @@
                 <p>No se encontro inventario</p>
             </field>
         </record>
+        <record id="ventas_produccion_pedidopt_action" model="ir.actions.act_window">
+            <field name="name">Inventario Info</field>
+            <field name="res_model">ventas.produccion.inventario</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p>No se encontro inventario</p>
+            </field>
+        </record>
 
         <menuitem name="Inventario" id="menu_inventario" parent="menu_planeacion" action="ventas_produccion_inventario_action" sequence="660"/>
+        <menuitem name="Inventario Info" id="menu_pedidopt" parent="menu_planeacion" action="ventas_produccion_pedidopt_action" sequence="661"/>
 
 <!-- Inventario Entrada -->
         <record id="inventario_entrada_view_form" model="ir.ui.view">
@@ -204,6 +232,9 @@
                     <field name="entrada_stock"/>
                     <field name="lote"/>
                     <field name="fecha_entrada"/>
+                </group>
+                <group>
+                    <field name="nota"/>
                 </group>
                 <footer>
                     <button string="Save" class="oe_highlight" name="save" type="object" />

@@ -18,6 +18,57 @@
             </field>
         </record>
 
+        <!-- Modulo Fabricacion / Miscelanea-->
+
+        <!--  Action Miscelanea-->
+        <record id="miscelanea_action" model="ir.actions.act_window">
+            <field name="name">Miscelanea</field>
+            <field name="res_model">fabricacion.miscelanea</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p>
+                    No se encontro nada.
+                </p>
+            </field>
+        </record>
+
+<!-- Tree Miscelanea -->
+        <record id="Miscelanea_Tree" model="ir.ui.view">
+            <field name="name">fabricacion.miscelanea.tree.view</field>
+            <field name="model">fabricacion.miscelanea</field>
+            <field name="arch" type="xml">
+                <tree string="Miscelanea">
+                    <field name="name"/>
+                    <field name="mp"/>
+                    <field name="pf"/>
+                </tree>
+            </field>
+        </record>
+
+         <!-- form Miscelanea-->
+        <record id="fabricacion_miscelanea_form" model="ir.ui.view">
+            <field name="name">fabricacion.miscelanea.form.view</field>
+            <field name="model">fabricacion.miscelanea</field>
+            <field name="arch" type="xml">
+                <form string="Miscelanea">
+                    <sheet>
+                            <group>
+                                <group>
+                                <field name="name"/>
+                                <field name="mp"/>
+                                <field name="pf"/>
+                                </group>
+                                 <group>
+                                     <field name="productos" widget="many2many_list"/>
+                                 </group>
+
+                            </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <menuitem name="Miscelanea" id="fabricacion_miscelanea" parent="mrp.menu_mrp_bom" sequence="310" action="miscelanea_action"/>
+
 
         <!-- <record id="ticket_form_view" model="ir.ui.view">
             <field name="name">mk.wizard.op.form</field>

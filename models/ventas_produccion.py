@@ -3,6 +3,25 @@
 from odoo import _, fields, models, api
 from odoo.exceptions import UserError, ValidationError
 import datetime, exceptions, warnings
+# class produccion_1(models.Model):
+#     _name = 'produccion.pt'
+#     name = fields.Char(string="Pedido PT")
+#     producto = fields.Many2many('product.template', string="Producto")
+#     cantidad = fields.Float(string="Cantidad")
+#     date_pedido = fields.Datetime(string="Fecha de Pedido", default=fields.Date.today(), track_visibility='onchange')
+#     estado1 = fields.Selection([('creado', 'Nuevo'),
+#                                ('enviado', 'Enviado a Produccion'),
+#                                ('cancel', 'Cancelado'),
+#                                ('final', 'Finalizado')], default='creado', string="Estado", track_visibility='onchange')
+#     @api.multi
+#     def enviado(self):
+#         self.estado = 'enviado'
+#     @api.multi
+#     def cancel(self):
+#         self.estado = 'cancel'
+#     @api.multi
+#     def final(self):
+#         self.estado = 'final'
 
 class ventas_produccion(models.Model):
     _name = 'ventas.produccion'
@@ -27,33 +46,41 @@ class ventas_produccion(models.Model):
     #ENVIAR A PRODUCCION
     @api.multi
     def enviado(self):
-        self.estado = 'enviado'
-        self.fecha_inicio = datetime.datetime.now()
+        for r in self:
+            r.estado = 'final'
+            r.fecha_inicio = datetime.datetime.now()
 
     #APROBAR PEDIDO
     @api.multi
     def aceptado(self):
-        self.estado = 'aceptado'
-        self.fecha_produccion = datetime.datetime.now()
+        for r in self:
+            r.estado = 'aceptado'
+            r.fecha_produccion = datetime.datetime.now()
 
     #FINALIZAR
     @api.multi
     def listo(self):
-        if self.enviado_pt == True:
-             self.estado = 'final'
-             self.fecha_termino = datetime.datetime.now()
-        else:
-            raise ValidationError(
-                _('Tiene que VALIDAR SALIDA el departamento de VENTAS'))
+        for r in self:
+            r.estado = 'final'
+            r.fecha_termino = datetime.datetime.now()
+        """
+         if self.enviado_pt == True:
+
+         else:
+             raise ValidationError(
+                 _('Tiene que VALIDAR SALIDA el departamento de VENTAS'))
+        """
 
     @api.multi
     def cancelado(self):
-        self.estado = 'cancel'
+        for r in self:
+            r.estado = 'cancel'
 
     #VALIDACION DE SALIDA
     @api.multi
     def check_aprobado(self):
-        self.enviado_pt = 'True'
+        for r in self:
+            r.enviado_pt = 'True'
 
     @api.model
     def create(self, vals):
@@ -65,26 +92,27 @@ class ventas_produccion(models.Model):
     #ERROR: Cuando tiene mas de un presupuesto en la pestaña de VENTAS marca error de parametros
     #IDEA: Con la sumatoria de productos compare con el stock que se tiene actualmente.
     def comprobar(self):
-        query="""Select pt.name as producto, sum(sol.product_uom_qty) as total
-                from sale_order so
-                inner join sale_order_line sol on sol.order_id = so.id
-                inner join product_product pp on sol.product_id = pp.id
-                inner join product_template pt on pp.product_tmpl_id = pt.id
-                where so.id in (%s)
-                group by sol.product_id, pt.name"""
-        params = []
-        for venta in self.ventas_id:
-            venta_or = self.env['sale.order'].search([('id','=', venta.id)])
-            venta_lin = self.env['sale.order.line'].search([('order_id', '=', venta_or.id)])
-            params.append(venta_or.id)
-            print(params)
-        self.env.cr.execute(query, tuple(params))
-        res = self.env.cr.dictfetchall()
-        # for r in res:
-        #     inventario = self.env['ventas.produccion.inventario'].search([('name.id','=', r.producto)])
-        #     if r.sum < inventario.stock_total:
-        #         mensaje = 'No hay suficiente producto en inventario de ' + inventario.name.name
-        self.aviso = res
+        for r in self:
+            query="""Select pt.name as producto, sum(sol.product_uom_qty) as total
+                    from sale_order so
+                    inner join sale_order_line sol on sol.order_id = so.id
+                    inner join product_product pp on sol.product_id = pp.id
+                    inner join product_template pt on pp.product_tmpl_id = pt.id
+                    where so.id in (%s)
+                    group by sol.product_id, pt.name"""
+            params = []
+            for venta in r.ventas_id:
+                venta_or = self.env['sale.order'].search([('id','=', venta.id)])
+                venta_lin = self.env['sale.order.line'].search([('order_id', '=', venta_or.id)])
+                params.append(venta_or.id)
+                print(params)
+            self.env.cr.execute(query, tuple(params))
+            res = self.env.cr.dictfetchall()
+            # for r in res:
+            #     inventario = self.env['ventas.produccion.inventario'].search([('name.id','=', r.producto)])
+            #     if r.sum < inventario.stock_total:
+            #         mensaje = 'No hay suficiente producto en inventario de ' + inventario.name.name
+            r.aviso = res
 
     # def comprobar(self):
     #     suma = 0
@@ -95,8 +123,6 @@ class ventas_produccion(models.Model):
     #             suma += productos.product_uom_qty
     #         print("Producto:" + str(productos.name))
     #         print("Suma:" + str(suma))
-
-
 class sale_order(models.Model):
     _inherit = 'sale.order'
 
@@ -111,7 +137,6 @@ class sale_order(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'new'
         }
-
 class VentasPlaneacionProduccion(models.TransientModel):
     _name = 'ventas.produccion.planeacion'
 
@@ -165,7 +190,6 @@ class VentasPlaneacionProduccion(models.TransientModel):
         # if reports.mapped('order_id'):
         #     raise ValidationError(
         #         _('All least one record has an order assigned'))
-
 class VentasProduccionInvetario(models.Model):
     _name = 'ventas.produccion.inventario'
     _description = "Inventario de Produccion"
@@ -177,16 +201,26 @@ class VentasProduccionInvetario(models.Model):
     info = fields.Float(string="Stock", compute="total_info", store=True)
     imagen = fields.Binary(string="Imagen", attachment=True)
     ventas = fields.Float(string="Ventas", compute="suma_ventas")
+    s_min = fields.Float(string="Stock Minimo")
+    s_fal = fields.Float(string="Stock Faltante", compute="stock_fl")
 
-    @api.one
+    @api.multi
+    def stock_fl(self):
+        for r in self:
+            if r.stock_total < r.s_min:
+                r.s_fal = -r.s_min + r.stock_total
+            if r.stock_total >= r.s_min:
+                r.s_fal = 0
+
+    @api.multi
     def suma_entradas(self):
-        entradas = self.env['inventario.entradas'].search([('entrada_id','=', self.id)])        
-        print(entradas)
-        suma_stock = 0        
-        if entradas is not None:
-            for rec in entradas:
-                suma_stock += rec.entrada_stock        
-            self.stock = suma_stock
+        for r in self:
+            entradas = self.env['inventario.entradas'].search([('entrada_id','=', r.id)])
+            suma_stock = 0
+            if entradas is not None:
+                for rec in entradas:
+                    suma_stock += rec.entrada_stock
+                r.stock = suma_stock
 
         # try:
             
@@ -196,28 +230,33 @@ class VentasProduccionInvetario(models.Model):
         #         else:
         #             self.stock = 0
         # except ValueError:
-        #     return None
+        #     returpan None
 
     @api.multi
     def suma_ventas(self):
         orden_pv = self.env['ventas.produccion'].search([('estado','=','final')])
-        suma_pv = 0
-        for pv in orden_pv:
-            for venta in pv.ventas_id:
-                venta_or = self.env['sale.order'].search([('id','=', venta.id)])
-                venta_lin = self.env['sale.order.line'].search([('order_id', '=', venta_or.id),('product_id', '=', self.name.id)])
-                for rec in venta_lin:
-                    suma_pv += rec.product_uom_qty
-                self.ventas = suma_pv
-
+        i = 0
+        for r in self:
+            suma_pv = 0
+            for pv in orden_pv:
+                for venta in pv.ventas_id:#campo many2many
+                    venta_lines = self.env['sale.order.line'].search([('order_id', '=', venta.id),('product_id', '=', r.name.id)])
+                    for rec in venta_lines:
+                        suma_pv += rec.product_uom_qty
+                    r.ventas = suma_pv
+                    print ("--------------------------------------PRODUCTO", r.name.name, "VENTA", suma_pv)
+    @api.multi
     @api.onchange('stock_total')
     def total_info(self):
-        self.info = self.stock_total
+        for r in self:
+            r.info = r.stock_total
 
-    @api.one
+    @api.multi
     @api.depends('stock','ventas')
     def stock_totales(self):
-        self.stock_total = self.stock - self.ventas
+        for r in self:
+            print ("--------------------------------------PRODUCTO",r.name.name ,"STOCK",r.stock,"Y VENTAS",r.ventas)
+            r.stock_total = r.stock - r.ventas
         
 
 
@@ -242,7 +281,6 @@ class VentasProduccionInvetario(models.Model):
             venta_lin = self.env['sale.order.line'].search([('order_id','=', venta_or.id)])
             #for lineas in venta_lin:
 
-
 class InventarioEntradas(models.Model):
     _name = 'inventario.entradas'
 
@@ -250,6 +288,7 @@ class InventarioEntradas(models.Model):
     entrada_stock = fields.Float(string="Cantidad")
     fecha_entrada = fields.Date(string="Fecha")
     lote = fields.Char(string="Lote")
+    nota = fields.Text(string="Nota:")
 
     @api.model
     def create(self, values):
@@ -259,3 +298,5 @@ class InventarioEntradas(models.Model):
     def save(self):
         """ Used in a wizard-like form view, manual save button when in edit mode """
         return True
+
+

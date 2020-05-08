@@ -63,6 +63,17 @@ class MkOP(models.Model):
         res = self.env.cr.dictfetchall()
         print (res)
 
+ # Miscelanea Modulo de fabricacion-------------------------------------------
+class fabricacion_miscelanea(models.Model):
+    _name = 'fabricacion.miscelanea'
+    name = fields.Many2one('stock.picking.type', string="Típo de Albaran")
+    mp = fields.Many2one('stock.location', string="Ubicación Materias Primas")
+    pf = fields.Many2one('stock.location', string="Ubicación de Productos Finalizados")
+    productos = fields.Many2many('product.product', string="Productos")
+
+
+
+
 
 
 
