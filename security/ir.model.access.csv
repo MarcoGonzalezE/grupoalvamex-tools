@@ -4,3 +4,4 @@ access_contabilidad_pagos_transferencia,contabilidad.pagos.transferencia,model_c
 access_ventas_produccion,Planeacion,model_ventas_produccion,planeacion_produccion,1,1,0,0
 access_ventas_produccion_pt,Planeacion,model_ventas_produccion,planeacion_pt,1,1,0,0
 access_ventas_produccion_ventas,Planeacion,model_ventas_produccion,planeacion_ventas,1,1,1,0
+access_fabricacion_miscelanea,Miscelanea,model_fabricacion_miscelanea,tk_group_functions,1,1,1,1

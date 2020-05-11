@@ -8,9 +8,13 @@
             <field name="arch" type="xml">
                 <xpath expr="//button[@name='button_scrap']" position="after">
                     <button name="action_op_funtion" string="Costear" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'done'),('costeado','=',True)]}" groups="grupoalvamex_tools.tk_group_functions"/>                    
+                </xpath>                
+                <!-- <xpath expr="//sheet//notebook//page[3]//group//group//field[@name='location_dest_id']" position="after"> -->
+                <xpath expr="//field[@name='origin']" position="after">
+                    <field name="asig_miscelanea" readonly="1" attrs="{'invisible': [('asig_miscelanea','=',True)]}"/>
                 </xpath>
                 <xpath expr="//button[@name='button_scrap']" position="after">
-                    <button name="asignar_misc" string="Asignar Miscelanea" type="object" class="oe_highlight" attrs="{'invisible': [('state','!=', 'confirmed')]}" groups="grupoalvamex_tools.tk_group_functions"/>                    
+                    <button name="asignar_misc" string="Asignar Miscelanea" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'confirmed'),('asig_miscelanea','=',True)]}" groups="grupoalvamex_tools.tk_group_functions"/>
                 </xpath>
                 <xpath expr="//field[@name='product_id']" position="after">
                     <field name="orden_producion_costear" invisible="1"/>
@@ -21,7 +25,7 @@
             </field>
         </record>
 
-        <!-- Modulo Fabricacion / Miscelanea-->
+<!-- Modulo Fabricacion / Miscelanea-->
 
         <!--  Action Miscelanea-->
         <record id="miscelanea_action" model="ir.actions.act_window">
@@ -65,6 +69,10 @@
                             <field name="productos"/> <!--widget="many2many_list"/>-->
                         </group>
                     </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
                 </form>
             </field>
         </record>

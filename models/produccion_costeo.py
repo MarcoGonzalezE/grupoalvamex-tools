@@ -20,6 +20,7 @@ class MkOP(models.Model):
     orden_producion_costear = fields.Char('Orden de Produccion', compute="_compute_orden")
     state = fields.Selection()
     costeado = fields.Boolean(string="Costeado")
+    asig_miscelanea = fields.Boolean(string="Miscelanea Asignada")
 
     @api.depends('name')
     def _compute_orden(self):
@@ -81,6 +82,7 @@ class MkOP(models.Model):
                         self.picking_type_id = p.ta
                         self.location_src_id = p.mp
                         self.location_dest_id = p.pf
+                        self.asig_miscelanea = True
             else:
                 raise ValidationError(_(self.product_id.name + ' NO ESTA REGISTRADO EN MISCELANEA'))
         else:
@@ -89,9 +91,10 @@ class MkOP(models.Model):
  # Miscelanea Modulo de fabricacion
 class FabricacionMiscelanea(models.Model):
     _name = 'fabricacion.miscelanea'
+    _inherit = ['mail.thread']
 
-    name = fields.Char(string="Nombre")
-    ta = fields.Many2one('stock.picking.type', string="Tipo de albarán")
-    mp = fields.Many2one('stock.location', string="Ubicación Materias Primas")
-    pf = fields.Many2one('stock.location', string="Ubicación de Productos Finalizados")
+    name = fields.Char(string="Nombre", track_visibility='onchange')
+    ta = fields.Many2one('stock.picking.type', string="Tipo de albarán", track_visibility='onchange')
+    mp = fields.Many2one('stock.location', string="Ubicación Materias Primas", track_visibility='onchange')
+    pf = fields.Many2one('stock.location', string="Ubicación de Productos Finalizados", track_visibility='onchange')
     productos = fields.Many2many('product.product', string="Productos")
