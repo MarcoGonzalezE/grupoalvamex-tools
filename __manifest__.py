@@ -36,6 +36,7 @@
     # always loaded
     'data': [
         'security/produccion_costeo_security.xml',
+        'security/grupos.xml',
         'security/ir.model.access.csv',
         'data/contabilidad.data.xml',
         'views/contabilidad_pagos_manuales_views.xml',
@@ -44,8 +45,10 @@
         'views/fabricacion_descontruccion_asientos_contables.xml',
         'views/fabricacion_asientos_contables.xml',
         'views/almacen_general_view.xml',
+        'views/importar_datos_views.xml',
         'wizard/ventas_reporte_wizard.xml',
         'wizard/ventas_clientes_saldo_wizard.xml',
+        'wizard/importar_datos_wizard.xml',
         'report/reporte_ventas_template.xml',
         'report/reporte_clientes_template.xml',
     ],
