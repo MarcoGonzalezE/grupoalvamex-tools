@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 	<data>
+		<!-- COMPRAS -->
 		<record id="sh_import_pol_wizard" model="ir.ui.view">
 			<field name="name">importar.lineas.compras.wizard</field>
 			<field name="model">import.pol.wizard</field>
@@ -23,6 +24,33 @@
 			<field name="res_model">import.pol.wizard</field>
 			<field name="view_type">form</field>
 			<field name="view_id" ref="sh_import_pol_wizard"/>
+			<field name="target">new</field>
+		</record>
+
+		<!-- VENTAS -->
+		<record id="sh_import_sol_wizard" model="ir.ui.view">
+			<field name="name">importar.lineas.ventas.wizard</field>
+			<field name="model">import.sol.wizard</field>
+			<field name="arch" type="xml">
+				<form string="Import Sale Order Lines">
+					<group>
+						<field name="import_type" widget="radio"/>
+						<field name="product_by" widget="radio"/>
+						<field name="file"/>
+					</group>
+					<footer>
+						<button name="import_sol_apply" string="Importar" type="object" class="btn-primary" />
+						<button string="Cancelar" class="btn-default" special="cancel" />
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		<record id="sh_import_sol_action" model="ir.actions.act_window">
+			<field name="name">Importar Linas de Venta</field>
+			<field name="res_model">import.sol.wizard</field>
+			<field name="view_type">form</field>
+			<field name="view_id" ref="sh_import_sol_wizard"/>
 			<field name="target">new</field>
 		</record>
 
