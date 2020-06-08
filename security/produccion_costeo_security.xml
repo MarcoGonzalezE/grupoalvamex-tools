@@ -24,7 +24,7 @@
             <field name="comment">Solo Usuario</field>
        </record>
        <record id="planeacion_ventas" model="res.groups">
-            <field name="name">Ventas</field>
+            <field name="name">Venta</field>
             <field name="category_id" ref="module_functions"/>
             <field name="comment">Solo Usuario</field>
        </record>

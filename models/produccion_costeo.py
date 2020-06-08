@@ -75,14 +75,13 @@ class MkOP(models.Model):
     def asignar_misc(self):
         #product = self.env['fabricacion.miscelanea.product.product.rel'].search([('product_product_id','=', self.product_id)])
         if self.state == 'confirmed':
-            misc = self.env['fabricacion.miscelanea'].search([('productos','=', self.product_id.id)])
+            misc = self.env['fabricacion.miscelanea'].search([('productos','=', self.product_id.id)], limit = 1)
             if misc.id is not False:
                 for p in misc:
-                    if p.productos == self.product_id:
-                        self.picking_type_id = p.ta
-                        self.location_src_id = p.mp
-                        self.location_dest_id = p.pf
-                        self.asig_miscelanea = True
+                    self.picking_type_id = p.ta
+                    self.location_src_id = p.mp
+                    self.location_dest_id = p.pf
+                    self.asig_miscelanea = True
             else:
                 raise ValidationError(_(self.product_id.name + ' NO ESTA REGISTRADO EN MISCELANEA'))
         else:
