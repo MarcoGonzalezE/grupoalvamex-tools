@@ -128,19 +128,27 @@
                     <sheet>                        
                         <div>
                             <field name="imagen" widget="image" class="oe_avatar"/>
+                            <div class="oe_title">
+                                <p>
+                                    <h2><field name="name" placeholder="Producto"/></h2>
+                                </p>
+                            </div>
                             <group>
-                                <group>
-                                    <field name="name"/>
-                                </group>
-                                <group>
-                                    <field name="s_min"/>
-                                    <field name="s_fal" readonly="1"/>
-                                </group>
-                                <group>
-                                    <div>
-                                        <p><h3>STOCK</h3> <field name="stock_total"/></p>
-                                    </div>
-                                </group>
+                                <table style="width:70%">
+                                    <tr>
+                                        <th style="text-align: center; width:30%;">Stock Minimo</th>
+                                        <th style="text-align: center; width:30%;">Stock Faltante</th>
+                                        <th style="font-size: 20px;">STOCK</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align: center; width:30%;"><field name="s_min"/></td>
+                                        <td style="text-align: center;  width:30%;"><field name="s_fal" readonly="1"/></td>
+                                        <td style="width:30%;"><field name="stock_total" attrs="{'invisible':[('s_min','&gt;','stock_total')]}"/>
+                                            <br/><field name="info" attrs="{'invisible':[('stock_total','&gt;', 0)]}"/> 
+                                            - <field name="mensaje" style="color:red ! important;" attrs="{'invisible':[('s_min','&gt;','stock_total')]}" readonly="1"/>
+                                            </td>
+                                    </tr>
+                                </table>
                             </group>
                         </div>
                         <group>
@@ -149,7 +157,7 @@
                                     <field name="entrada_ids">
                                         <tree editable="top">
                                             <field name="fecha_entrada" readonly="1"/>
-                                            <field name="entrada_stock" readonly="1"/>
+                                            <field name="entrada_stock" readonly="1" sum="entradas"/>
                                             <field name="lote" readonly="1"/>
                                             <field name="nota" readonly="1"/>
                                         </tree>
@@ -176,9 +184,8 @@
                                 </div>
                                 <div class="oe_kanban_details">
                                     <strong class="oe_partner_heading"><field name="name"/></strong>
-                                    <!-- <ul>
-                                        <strong><field name="info_stock"/></strong>
-                                    </ul> -->
+                                    <ul><strong>Stock: <field name="stock_total"/></strong></ul>
+                                    <ul><strong>Faltante: <field name="s_fal"/></strong></ul>
                                 </div>
                             </div>
                         </t>
@@ -204,7 +211,7 @@
         <record id="ventas_produccion_inventario_action" model="ir.actions.act_window">
             <field name="name">Inventario</field>
             <field name="res_model">ventas.produccion.inventario</field>
-            <field name="view_mode">kanban,form</field>
+            <field name="view_mode">kanban,tree,form</field>
             <field name="help" type="html">
                 <p>No se encontro inventario</p>
             </field>

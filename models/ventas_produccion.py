@@ -198,19 +198,21 @@ class VentasProduccionInvetario(models.Model):
     stock = fields.Float(string="Stock", compute="suma_entradas")
     stock_total = fields.Float(string="Stock Total", compute="stock_totales")
     entrada_ids = fields.One2many('inventario.entradas', 'entrada_id', string="Entradas de Inventario")
-    info = fields.Float(string="Stock", compute="total_info", store=True)
+    info = fields.Float(string="Stock", compute="total_info")
     imagen = fields.Binary(string="Imagen", attachment=True)
     ventas = fields.Float(string="Ventas", compute="suma_ventas")
     s_min = fields.Float(string="Stock Minimo")
     s_fal = fields.Float(string="Stock Faltante", compute="stock_fl")
+    mensaje = fields.Text(string="Mensaje", compute="total_info")
 
-    @api.multi
+    @api.depends('s_min','info')
     def stock_fl(self):
         for r in self:
-            if r.stock_total < r.s_min:
-                r.s_fal = -r.s_min + r.stock_total
-            if r.stock_total >= r.s_min:
-                r.s_fal = 0
+            r.s_fal = r.s_min - r.info
+            # if r.stock_total < r.s_min:
+            #     r.s_fal = r.stock_total - r.s_min
+            # if r.stock_total >= r.s_min:
+            #     r.s_fal = 0
 
     @api.multi
     def suma_entradas(self):
@@ -245,11 +247,18 @@ class VentasProduccionInvetario(models.Model):
                         suma_pv += rec.product_uom_qty
                     r.ventas = suma_pv
                     print ("--------------------------------------PRODUCTO", r.name.name, "VENTA", suma_pv)
-    @api.multi
-    @api.onchange('stock_total')
+
+    @api.depends('stock_total')
     def total_info(self):
         for r in self:
-            r.info = r.stock_total
+            if r.stock_total < 1:
+                r.info = r.s_min + r.stock_total
+                r.mensaje = _('Usando el Stock Minimo')
+                if r.info < 1:
+                    r.mensaje = _('Sin Stock')
+            else:
+                r.info = r.s_min
+                r.mensaje = False
 
     @api.multi
     @api.depends('stock','ventas')
