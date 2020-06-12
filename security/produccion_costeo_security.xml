@@ -16,7 +16,7 @@
        <record id="planeacion_produccion" model="res.groups">
             <field name="name">Produccion</field>
             <field name="category_id" ref="module_functions"/>
-            <field name="comment">Solo Usuario</field>
+            <field name="comment">Ver, modificar Planeacion - Crear Inventario</field>
        </record>
        <record id="planeacion_pt" model="res.groups">
             <field name="name">Producto Terminado</field>
@@ -26,7 +26,7 @@
        <record id="planeacion_ventas" model="res.groups">
             <field name="name">Venta</field>
             <field name="category_id" ref="module_functions"/>
-            <field name="comment">Solo Usuario</field>
+            <field name="comment">Solo ver, crear y modificar Planeacion</field>
        </record>
 
 </odoo>

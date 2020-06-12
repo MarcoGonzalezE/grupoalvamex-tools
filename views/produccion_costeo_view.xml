@@ -11,10 +11,10 @@
                 </xpath>                
                 <!-- <xpath expr="//sheet//notebook//page[3]//group//group//field[@name='location_dest_id']" position="after"> -->
                 <xpath expr="//field[@name='origin']" position="after">
-                    <field name="asig_miscelanea" readonly="1" attrs="{'invisible': [('asig_miscelanea','=',True)]}"/>
+                    <field name="asig_miscelanea" readonly="1" attrs="{'invisible': [('asig_miscelanea','=', False)]}"/>
                 </xpath>
                 <xpath expr="//button[@name='button_scrap']" position="after">
-                    <button name="asignar_misc" string="Asignar Miscelanea" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'confirmed'),('asig_miscelanea','=',True)]}" groups="grupoalvamex_tools.tk_group_functions"/>
+                    <button name="asignar_misc" string="Asignar Miscelanea" type="object" class="oe_read_only" attrs="{'invisible': ['|',('state','!=', 'confirmed'),('asig_miscelanea','=',True)]}" groups="grupoalvamex_tools.tk_group_functions"/>
                 </xpath>
                 <xpath expr="//field[@name='product_id']" position="after">
                     <field name="orden_producion_costear" invisible="1"/>

@@ -31,40 +31,35 @@
             <field name="arch" type="xml">
                 <form string="Planeacion"><!--edit="false"-->
                     <header>
-<!--                        <button string="VALIDAR SALIDA" type="object"  name="check_aprobado" attrs="{'invisible':['|',('enviado_pt','=',True),('estado','!=','aceptado')]}" groups="grupoalvamex_tools.planeacion_ventas"/><b/>-->
-
-<!--                        <button string="ENVIAR A PRODUCCION" type="object" class="oe_highlight" name="enviado" attrs="{'invisible':[('estado','!=','creado')]}" groups="grupoalvamex_tools.planeacion_ventas"/><b/>-->
-<!--                        -->
-<!--                        <button string="CANCELAR" type="object" spclass="btn btn-danger" name="cancelado" attrs="{'invisible':['|',('estado','=','final'),('estado','=','cancel')]}"/><b/>-->
-<!--                        -->
-<!--                        <button string="ACEPTAR PEDIDO" type="object" class="oe_highlight" name="aceptado" groups="grupoalvamex_tools.planeacion_produccion" attrs="{'invisible':[('estado','!=','enviado')]}"/><b/>-->
-<!--                        -->
-                        <button string="CONFIRMAR PEDIDO A PRODUCCION" type="object" class="oe_highlight" name="listo"/><b/>
+                        <!-- <button string="VALIDAR SALIDA" type="object"  name="check_aprobado" attrs="{'invisible':['|',('enviado_pt','=',True),('estado','!=','aceptado')]}" groups="grupoalvamex_tools.planeacion_ventas"/><b/> -->
+                        <!-- <button string="ENVIAR A PRODUCCION" type="object" class="oe_highlight" name="enviado" attrs="{'invisible':[('estado','!=','creado')]}" groups="grupoalvamex_tools.planeacion_ventas"/><b/> -->
+                        <!-- <button string="ACEPTAR PEDIDO" type="object" class="oe_highlight" name="aceptado" groups="grupoalvamex_tools.planeacion_produccion" attrs="{'invisible':[('estado','!=','enviado')]}"/><b/> -->
                         <field name="estado" widget="statusbar" class="oe_highlight"/>
-                        <button string="Comprobar disponibilidad" type="object" class="oe_highlight" name="comprobar"/>
+                        <button string="CONFIRMAR PEDIDO A PRODUCCION" type="object" class="oe_highlight" name="listo" attrs="{'invisible':['|',('estado','=','cancel'),('estado','=','final')]}"/><b/>
+                        <!-- <button string="Comprobar disponibilidad" type="object" class="oe_highlight" name="comprobar" attrs="{'invisible':['|',('estado','=','cancel'),('estado','=','final')]}"/> -->
+                        <button string="CANCELAR" type="object" class="btn" name="cancelado" attrs="{'invisible':[('estado','=','cancel')]}"/><b/>
                     </header>
                     <sheet>
                         <div class="oe_title">
                             <h1><field name="name" readonly="1"/></h1>
                         </div>
                         <group>
-                            <group>
-                                <field name="cliente" required="1" attrs="{'invisible':['|',('estado','=', 'cancel'),('estado','=', 'final')]}"/>
-                                <field name="fecha_pedido" readonly="1"/>
-                            </group>
-                            <group>
-                                <field name="fecha_inicio" readonly="1"/>
-                                <field name="enviado_pt" attrs="{'invisible':[('enviado_pt','=', False)]}" readonly="1"/>
-                            </group>
-                        </group>
-                        <group>
-                            <group>
-                                <field name="fecha_produccion" readonly="1"/>
-                            </group>
-                            <group>
-                                <field name="fecha_termino" readonly="1"/>
-                            </group>
-                            <field name="aviso"/>
+                            <table width="100%">
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Fecha de Pedido</th>
+                                    <th>Fecha Inicio</th>
+                                    <th>Fecha Aceptacion</th>
+                                    <th>Fecha Terminacion</th>
+                                </tr>
+                                <tr>
+                                    <td><field name="cliente"/></td>
+                                    <td><field name="fecha_pedido" readonly="1"/></td>
+                                    <td><field name="fecha_inicio" readonly="1"/></td>
+                                    <td><field name="fecha_produccion" readonly="1"/></td>
+                                    <td><field name="fecha_termino" readonly="1"/></td>
+                                </tr>
+                            </table>
                         </group>
                         <group>
                             <notebook>
@@ -75,11 +70,13 @@
                                             <field name="name"/>
                                             <field name="product_uom_qty" sum="Total"/>
                                             <field name="product_uom"/>
+                                            <field name="order_id"/>
+                                            <field name="state"/>
                                         </tree>
                                     </field>
                                 </page>
                                 <page string="Ventas">
-                                    <field name="ventas_id" attrs="{'invisible':['|',('estado','=', 'cancel'),('estado','=', 'final')]}"/>
+                                    <field name="ventas_id" readonly="1"/>
                                 </page>
                             </notebook>
                         </group>
@@ -100,7 +97,7 @@
                 <form string="Crear orden de Planeacion">
                     <separator colspan="4" string="¿Crear orden de planeacion?"/>
                     <footer>
-                        <button name="planeacion" string="Confirmar" type="object"/>or
+                        <button name="planeacion" string="Confirmar" type="object"/>
                         <button class="oe_link" special="cancel" string="Cancelar"/>
                     </footer>
                 </form>
@@ -124,6 +121,7 @@
                 <form>
                     <header>
                         <button type="object" name="registrar_entrada" string="Registrar Entrada" class="btn-primary"/>
+                        <button type="object" name="actualizar_ventas" string="Actualizar Salidas" class="btn"/>
                     </header>
                     <sheet>                        
                         <div>
@@ -143,9 +141,9 @@
                                     <tr>
                                         <td style="text-align: center; width:30%;"><field name="s_min"/></td>
                                         <td style="text-align: center;  width:30%;"><field name="s_fal" readonly="1"/></td>
-                                        <td style="width:30%;"><field name="stock_total" attrs="{'invisible':[('s_min','&gt;','stock_total')]}"/>
-                                            <br/><field name="info" attrs="{'invisible':[('stock_total','&gt;', 0)]}"/> 
-                                            - <field name="mensaje" style="color:red ! important;" attrs="{'invisible':[('s_min','&gt;','stock_total')]}" readonly="1"/>
+                                        <td style="width:30%;"><field name="stock_total"/>
+                                            <!-- <br/><field name="info" attrs="{'invisible':[('stock_total','&gt;', 0)]}"/> 
+                                            - <field name="mensaje" style="color:red ! important;" attrs="{'invisible':[('s_min','&gt;','stock_total')]}" readonly="1"/> -->
                                             </td>
                                     </tr>
                                 </table>
@@ -160,6 +158,18 @@
                                             <field name="entrada_stock" readonly="1" sum="entradas"/>
                                             <field name="lote" readonly="1"/>
                                             <field name="nota" readonly="1"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                                <page string="Salidas">
+                                    <field name="ventas_ids" readonly="1">
+                                        <tree>
+                                            <field name="product_id"/>
+                                            <field name="name"/>
+                                            <field name="product_uom_qty" sum="Total"/>
+                                            <field name="product_uom"/>
+                                            <field name="order_id"/>
+                                            <field name="state"/>
                                         </tree>
                                     </field>
                                 </page>
@@ -185,7 +195,8 @@
                                 <div class="oe_kanban_details">
                                     <strong class="oe_partner_heading"><field name="name"/></strong>
                                     <ul><strong>Stock: <field name="stock_total"/></strong></ul>
-                                    <ul><strong>Faltante: <field name="s_fal"/></strong></ul>
+                                    <ul attrs="{'invisible':[('s_fal','=', 0)]}"><strong><font color="red">Faltante: <field name="s_fal"/></font></strong></ul>
+                                    <ul attrs="{'invisible':[('s_fal','>', 0)]}"><strong>Faltante: <field name="s_fal"/></strong></ul>
                                 </div>
                             </div>
                         </t>
@@ -244,13 +255,14 @@
                     <field name="nota"/>
                 </group>
                 <footer>
-                    <button string="Save" class="oe_highlight" name="save" type="object" />
-                    <button string="Cancel" class="oe_highlight" special="cancel" />
+                    <button string="Registrar" class="oe_highlight" name="save" type="object"/>
+                    <button string="Cancelar" class="oe_highlight" special="cancel"/>
                 </footer>
             </form>
           </field>
-      </record>
+      </record>   
 
-    
+
+
     </data>
 </odoo>

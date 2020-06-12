@@ -16,6 +16,8 @@ class MkOP(models.Model):
     location_src_id = fields.Many2one()
     location_dest_id = fields.Many2one()
     state = fields.Selection()
+    move_raw_ids = fields.One2many()
+    move_finished_ids = fields.One2many()
 
     orden_producion_costear = fields.Char('Orden de Produccion', compute="_compute_orden")
     state = fields.Selection()
@@ -70,8 +72,6 @@ class MkOP(models.Model):
         res = self.env.cr.dictfetchall()
         print (res)
 
-
-    @api.depends('product_id')
     def asignar_misc(self):
         #product = self.env['fabricacion.miscelanea.product.product.rel'].search([('product_product_id','=', self.product_id)])
         if self.state == 'confirmed':
@@ -82,6 +82,10 @@ class MkOP(models.Model):
                     self.location_src_id = p.mp
                     self.location_dest_id = p.pf
                     self.asig_miscelanea = True
+                for mc in self.move_raw_ids:
+                    mc.location_id = self.location_src_id
+                for pf in self.move_finished_ids:
+                    pf.location_dest_id = self.location_dest_id
             else:
                 raise ValidationError(_(self.product_id.name + ' NO ESTA REGISTRADO EN MISCELANEA'))
         else:

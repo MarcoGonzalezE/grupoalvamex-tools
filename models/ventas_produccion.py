@@ -3,25 +3,6 @@
 from odoo import _, fields, models, api
 from odoo.exceptions import UserError, ValidationError
 import datetime, exceptions, warnings
-# class produccion_1(models.Model):
-#     _name = 'produccion.pt'
-#     name = fields.Char(string="Pedido PT")
-#     producto = fields.Many2many('product.template', string="Producto")
-#     cantidad = fields.Float(string="Cantidad")
-#     date_pedido = fields.Datetime(string="Fecha de Pedido", default=fields.Date.today(), track_visibility='onchange')
-#     estado1 = fields.Selection([('creado', 'Nuevo'),
-#                                ('enviado', 'Enviado a Produccion'),
-#                                ('cancel', 'Cancelado'),
-#                                ('final', 'Finalizado')], default='creado', string="Estado", track_visibility='onchange')
-#     @api.multi
-#     def enviado(self):
-#         self.estado = 'enviado'
-#     @api.multi
-#     def cancel(self):
-#         self.estado = 'cancel'
-#     @api.multi
-#     def final(self):
-#         self.estado = 'final'
 
 class ventas_produccion(models.Model):
     _name = 'ventas.produccion'
@@ -34,7 +15,7 @@ class ventas_produccion(models.Model):
     enviado_pt = fields.Boolean(string="Validacion de Salida", default=False, track_visibility='onchange')
     fecha_inicio = fields.Datetime(string="Fecha Inicio", track_visibility='onchange')
     fecha_termino = fields.Datetime(string="Fecha Terminacion", track_visibility='onchange')
-    cliente = fields.Many2one('res.partner',  string="Cliente:", track_visibility='onchange')
+    cliente = fields.Many2one('res.partner',  string="Cliente", track_visibility='onchange')
     estado = fields.Selection([('creado', 'Nuevo'),
                                ('enviado', 'Enviado a Produccion'),
                                ('aceptado', 'En proceso'),
@@ -198,6 +179,7 @@ class VentasProduccionInvetario(models.Model):
     stock = fields.Float(string="Stock", compute="suma_entradas")
     stock_total = fields.Float(string="Stock Total", compute="stock_totales")
     entrada_ids = fields.One2many('inventario.entradas', 'entrada_id', string="Entradas de Inventario")
+    ventas_ids = fields.Many2many('sale.order.line', string="Ventas")
     info = fields.Float(string="Stock", compute="total_info")
     imagen = fields.Binary(string="Imagen", attachment=True)
     ventas = fields.Float(string="Ventas", compute="suma_ventas")
@@ -205,10 +187,14 @@ class VentasProduccionInvetario(models.Model):
     s_fal = fields.Float(string="Stock Faltante", compute="stock_fl")
     mensaje = fields.Text(string="Mensaje", compute="total_info")
 
-    @api.depends('s_min','info')
+    @api.depends('s_min','stock_total')
     def stock_fl(self):
         for r in self:
-            r.s_fal = r.s_min - r.info
+            if r.stock_total < r.s_min:
+                r.s_fal = r.s_min - r.stock_total
+            else:
+                r.s_fal = 0
+            #r.s_fal = r.s_min - r.info
             # if r.stock_total < r.s_min:
             #     r.s_fal = r.stock_total - r.s_min
             # if r.stock_total >= r.s_min:
@@ -232,7 +218,7 @@ class VentasProduccionInvetario(models.Model):
         #         else:
         #             self.stock = 0
         # except ValueError:
-        #     returpan None
+        #     return None
 
     @api.multi
     def suma_ventas(self):
@@ -246,16 +232,26 @@ class VentasProduccionInvetario(models.Model):
                     for rec in venta_lines:
                         suma_pv += rec.product_uom_qty
                     r.ventas = suma_pv
-                    print ("--------------------------------------PRODUCTO", r.name.name, "VENTA", suma_pv)
+
+    def actualizar_ventas(self):
+        self.ventas_ids = False
+        orden_pv = self.env['ventas.produccion'].search([('estado','=','final')])
+        for r in self:
+            for pv in orden_pv:
+                for venta in pv.ventas_id:
+                    venta_lines = self.env['sale.order.line'].search([('order_id', '=', venta.id),('product_id', '=', r.name.id)])
+                    for rec in venta_lines:
+                        r.write({'ventas_ids':[(4, rec.id)]})
+
 
     @api.depends('stock_total')
     def total_info(self):
         for r in self:
             if r.stock_total < 1:
                 r.info = r.s_min + r.stock_total
-                r.mensaje = _('Usando el Stock Minimo')
-                if r.info < 1:
-                    r.mensaje = _('Sin Stock')
+                #r.mensaje = _('Usando el Stock Minimo')
+                #if r.info < 1:
+                    #r.mensaje = _('Sin Stock')
             else:
                 r.info = r.s_min
                 r.mensaje = False
@@ -264,10 +260,7 @@ class VentasProduccionInvetario(models.Model):
     @api.depends('stock','ventas')
     def stock_totales(self):
         for r in self:
-            print ("--------------------------------------PRODUCTO",r.name.name ,"STOCK",r.stock,"Y VENTAS",r.ventas)
-            r.stock_total = r.stock - r.ventas
-        
-
+            r.stock_total = r.stock - r.ventas     
 
     @api.multi
     def registrar_entrada(self):
