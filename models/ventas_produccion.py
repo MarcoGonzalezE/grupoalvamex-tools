@@ -4,6 +4,62 @@ from odoo import _, fields, models, api
 from odoo.exceptions import UserError, ValidationError
 import datetime, exceptions, warnings
 
+class SucursalesPlaneacion(models.Model):
+    _name = 'sucursales.planeacion'
+
+    name = fields.Char(string="Nombre")
+    imagen = fields.Binary(string="Logo", attachment=True)
+    
+    #Planeacion - Ventas
+    ventas_ids = fields.One2many('ventas.produccion', 'sucursal', string="Ventas")
+    ventas_cont = fields.Integer(compute='get_contadores', store=False)
+
+    #Inventario - Stock
+    inventario_ids = fields.One2many('ventas.produccion.inventario', 'sucursal', string="Inventario")
+    inventario_cont = fields.Integer(compute='get_contadores', store=False)
+
+    @api.one
+    @api.depends('ventas_ids','inventario_ids')
+    def get_contadores(self):
+        self.ventas_cont = len(self.ventas_ids.filtered(lambda s: s.estado in ('final')))
+        self.inventario_cont = len(self.inventario_ids)
+
+    @api.multi
+    def act_ventas(self):
+        action = self.env.ref('grupoalvamex_tools.ventas_produccion_action')
+
+        result = {
+            'name': action.name,
+            'help': action.help,
+            'type': action.type,
+            'view_type': action.view_type,
+            'view_mode': action.view_mode,
+            'target': action.target,
+            'context': action.context,
+            'res_model': action.res_model,
+        }
+
+        result['domain'] = "[('id','in',["+','.join(map(str, self.ventas_ids.ids))+"])]"
+        return result
+
+    @api.multi
+    def act_inventario(self):
+        action = self.env.ref('grupoalvamex_tools.ventas_produccion_inventario_action')
+
+        result = {
+            'name': action.name,
+            'help': action.help,
+            'type': action.type,
+            'view_type': action.view_type,
+            'view_mode': action.view_mode,
+            'target': action.target,
+            'context': action.context,
+            'res_model': action.res_model,
+        }
+        result['domain'] = "[('id','in',["+','.join(map(str, self.inventario_ids.ids))+"])]"
+        return result
+
+
 class ventas_produccion(models.Model):
     _name = 'ventas.produccion'
     _inherit = ['mail.thread']
@@ -16,6 +72,7 @@ class ventas_produccion(models.Model):
     fecha_inicio = fields.Datetime(string="Fecha Inicio", track_visibility='onchange')
     fecha_termino = fields.Datetime(string="Fecha Terminacion", track_visibility='onchange')
     cliente = fields.Many2one('res.partner',  string="Cliente", track_visibility='onchange')
+    sucursal = fields.Many2one('sucursales.planeacion', string="CEDIS", track_visibility='onchange')
     estado = fields.Selection([('creado', 'Nuevo'),
                                ('enviado', 'Enviado a Produccion'),
                                ('aceptado', 'En proceso'),
@@ -104,6 +161,7 @@ class ventas_produccion(models.Model):
     #             suma += productos.product_uom_qty
     #         print("Producto:" + str(productos.name))
     #         print("Suma:" + str(suma))
+
 class sale_order(models.Model):
     _inherit = 'sale.order'
 
@@ -118,6 +176,7 @@ class sale_order(models.Model):
             'type': 'ir.actions.act_window',
             'target': 'new'
         }
+
 class VentasPlaneacionProduccion(models.TransientModel):
     _name = 'ventas.produccion.planeacion'
 
@@ -186,6 +245,7 @@ class VentasProduccionInvetario(models.Model):
     s_min = fields.Float(string="Stock Minimo")
     s_fal = fields.Float(string="Stock Faltante", compute="stock_fl")
     mensaje = fields.Text(string="Mensaje", compute="total_info")
+    sucursal = fields.Many2one('sucursales.planeacion', string="CEDIS")
 
     @api.depends('s_min','stock_total')
     def stock_fl(self):
@@ -222,9 +282,9 @@ class VentasProduccionInvetario(models.Model):
 
     @api.multi
     def suma_ventas(self):
-        orden_pv = self.env['ventas.produccion'].search([('estado','=','final')])
-        i = 0
         for r in self:
+            orden_pv = self.env['ventas.produccion'].search([('estado', '=', 'final'), ('sucursal', '=', r.sucursal.id)])
+            i = 0
             suma_pv = 0
             for pv in orden_pv:
                 for venta in pv.ventas_id:#campo many2many
@@ -235,8 +295,8 @@ class VentasProduccionInvetario(models.Model):
 
     def actualizar_ventas(self):
         self.ventas_ids = False
-        orden_pv = self.env['ventas.produccion'].search([('estado','=','final')])
         for r in self:
+            orden_pv = self.env['ventas.produccion'].search([('estado', '=', 'final'), ('sucursal', '=', r.sucursal.id)])
             for pv in orden_pv:
                 for venta in pv.ventas_id:
                     venta_lines = self.env['sale.order.line'].search([('order_id', '=', venta.id),('product_id', '=', r.name.id)])

@@ -5,8 +5,9 @@
         <!--- Action-->
         <record id="ventas_produccion_action" model="ir.actions.act_window">
             <field name="name">Planeacion</field>
+            <field name="type">ir.actions.act_window</field>
             <field name="res_model">ventas.produccion</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,form,graph</field>
         </record>
 
         <!--- Tree -->
@@ -19,6 +20,7 @@
                     <field name="name"/>
                     <field name="fecha_pedido"/>
                     <field name="cliente"/>
+                    <field name="sucursal"/>
                     <field name="estado"/>
                 </tree>
             </field>
@@ -42,9 +44,15 @@
                     <sheet>
                         <div class="oe_title">
                             <h1><field name="name" readonly="1"/></h1>
-                        </div>
+                        </div>                        
                         <group>
                             <table width="100%">
+                                <tr>
+                                    <th>CEDIS</th>
+                                </tr>
+                                <tr>
+                                    <td><field name="sucursal" options="{'no_create': True}" attrs="{'readonly':[('estado','!=','creado')]}" required="1"/></td>
+                                </tr>
                                 <tr>
                                     <th>Cliente</th>
                                     <th>Fecha de Pedido</th>
@@ -53,7 +61,7 @@
                                     <th>Fecha Terminacion</th>
                                 </tr>
                                 <tr>
-                                    <td><field name="cliente"/></td>
+                                    <td><field name="cliente" attrs="{'readonly':[('estado','!=','creado')]}" required="1"/></td>
                                     <td><field name="fecha_pedido" readonly="1"/></td>
                                     <td><field name="fecha_inicio" readonly="1"/></td>
                                     <td><field name="fecha_produccion" readonly="1"/></td>
@@ -86,6 +94,17 @@
                         <field name="message_ids" widget="mail_thread"/>
                     </div>
                 </form>
+            </field>
+        </record>
+
+        <!-- Graph -->
+        <record id="ventas_produccion_graph" model="ir.ui.view">
+            <field name="name">Grafica Planeacion</field>
+            <field name="model">ventas.produccion</field>
+            <field name="arch" type="xml">
+                <graph stacked="False">
+                    <field name="sucursal" string="CEDIS"/>
+                </graph>
             </field>
         </record>
 
@@ -128,7 +147,8 @@
                             <field name="imagen" widget="image" class="oe_avatar"/>
                             <div class="oe_title">
                                 <p>
-                                    <h2><field name="name" placeholder="Producto"/></h2>
+                                    <h2><field name="name" placeholder="Producto" required="1"/></h2>
+                                    <strong>CEDIS: </strong><field name="sucursal" required="1"/>
                                 </p>
                             </div>
                             <group>
@@ -194,6 +214,7 @@
                                 </div>
                                 <div class="oe_kanban_details">
                                     <strong class="oe_partner_heading"><field name="name"/></strong>
+                                    <ul><font color="blue"><field name="sucursal"/></font></ul>
                                     <ul><strong>Stock: <field name="stock_total"/></strong></ul>
                                     <ul attrs="{'invisible':[('s_fal','=', 0)]}"><strong><font color="red">Faltante: <field name="s_fal"/></font></strong></ul>
                                     <ul attrs="{'invisible':[('s_fal','>', 0)]}"><strong>Faltante: <field name="s_fal"/></strong></ul>
@@ -211,6 +232,7 @@
             <field name="arch" type="xml">
                 <tree string="Inventario Info" edit="false" create="false">
                     <field name="name"/>
+                    <field name="sucursal"/>
                     <field name="s_min"/>
                     <field name="stock_total"/>
                     <field name="s_fal"/>
@@ -238,6 +260,57 @@
 
         <menuitem name="Inventario" id="menu_inventario" parent="menu_planeacion" action="ventas_produccion_inventario_action" sequence="660"/>
         <menuitem name="Inventario Info" id="menu_pedidopt" parent="menu_planeacion" action="ventas_produccion_pedidopt_action" sequence="661"/>
+
+<!-- Sucursales -->
+        <record id="sucursales_planeacion_view_tree" model="ir.ui.view">
+            <field name="name">Centros de Distribución</field>
+            <field name="model">sucursales.planeacion</field>
+            <field name="arch" type="xml">
+                <tree string="Centros de Distribución">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="sucursales_planeacion_view_form" model="ir.ui.view">
+            <field name="name">Centros de Distribución</field>
+            <field name="model">sucursales.planeacion</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="act_ventas" type="object" class="oe_stat_button" icon="fa-truck">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value"><field name="ventas_cont"/></span>
+                                    <span class="o_stat_text"> Ventas</span>
+                                </div>
+                            </button>
+                            <button name="act_inventario" type="object" class="oe_stat_button" icon="fa-industry">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value"><field name="inventario_cont"/></span>
+                                    <span class="o_stat_text"> Productos</span>
+                                </div>
+                            </button>
+                        </div>
+                        <field name="imagen" widget="image" class="oe_avatar"/>
+                        <div class='oe_title'>
+                            <h2><field name="name"/></h2>
+                        </div>                        
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="sucursales_planeacion_action" model="ir.actions.act_window">
+            <field name="name">Centros de Distribución</field>
+            <field name="res_model">sucursales.planeacion</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p>No se ha registrado ningun Centro de distribución</p>
+            </field>
+        </record>
+
+        <menuitem name="Centros de Distribución" id="menu_cedis" parent="menu_planeacion" action="sucursales_planeacion_action" sequence="700" groups="grupoalvamex_tools.planeacion_gerencia"/>
 
 <!-- Inventario Entrada -->
         <record id="inventario_entrada_view_form" model="ir.ui.view">

@@ -7,3 +7,6 @@ access_ventas_produccion_ventas,Planeacion,model_ventas_produccion,planeacion_ve
 access_fabricacion_miscelanea,Miscelanea,model_fabricacion_miscelanea,tk_group_functions,1,1,1,1
 access_ventas_produccion_inventario,Inventario de Produccion,model_ventas_produccion_inventario,planeacion_produccion,1,1,1,0
 access_inventario_entradas,Entrada de Inventario,model_inventario_entradas,planeacion_produccion,1,1,1,1
+access_ventas_produccion_gerencia,Ordenes de Planeacion,model_ventas_produccion,planeacion_gerencia,1,1,1,1
+access_ventas_produccion_inventario_gerencia,Inventario de Produccion,model_ventas_produccion_inventario,planeacion_gerencia,1,1,1,1
+access_inventario_entradas_gerencia,Entrada de Inventario,model_inventario_entradas,planeacion_gerencia,1,1,1,1
