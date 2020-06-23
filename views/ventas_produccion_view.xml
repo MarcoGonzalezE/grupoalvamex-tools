@@ -335,7 +335,92 @@
           </field>
       </record>   
 
+<!-- Vendedores -->
+        <record id="ventas_vendedores_action" model="ir.actions.act_window">
+            <field name="name">Agregar Vendedores</field>
+            <field name="res_model">vendedores.ventas</field>
+            <field name="view_mode">kanban,form</field>
+        </record>
 
+        <record id="vendedores_ventas_view_kandan" model="ir.ui.view">
+            <field name="name">vendedores.ventas.kanban.view</field>
+            <field name="model">vendedores.ventas</field>
+            <field name="arch" type="xml">
+                <kanban class="o_res_partner_kanban">
+                    <field name="name"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click">
+                                <div class="o_kanban_image">
+                                    <img t-att-src="kanban_image('vendedores.ventas', 'imagen', record.id.value)"/>
+                                </div>
+                                <div class="oe_kanban_details">
+                                    <h4>
+                                    <strong class="oe_partner_heading"><field name="name"/></strong>
+                                    </h4>
+                                    <br>
+                                    <strong class="oe_partner_heading"><field name="correo"/></strong>
+                                    </br>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="vendedores_ventas_view_form" model="ir.ui.view">
+            <field name="name">vendedores.ventas.form</field>
+            <field name="model">vendedores.ventas</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div>
+                            <field name="imagen" widget="image" class="oe_avatar"/>
+                            <group>
+                                <h1>
+                                 <field name="name" placeholder="[Nombre del Vendedor]"/>
+                                </h1>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="correo"/>
+                                    <field name="tel" widget="phone"/>
+                                </group>
+
+                            </group>
+                        </div>
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <menuitem name="Agregar Vendedor" id="agregar_vendedor" parent="sales_team.menu_base_partner" action="ventas_vendedores_action" sequence="101"/>
+
+        <record id="sale_order_inherit" model="ir.ui.view">
+            <field name="name">sale.order.inherit</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <field name="partner_shipping_id" position="after">
+                  <field name="vendedores"/>
+                </field>
+            </field>
+        </record>
+        
+        <record id="res_partner_inherit" model="ir.ui.view">
+            <field name="name">res.partner.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <field name="category_id" position="after">
+                    <group>
+                  <field name="x_vendedores"/>
+                    </group>
+                </field>
+            </field>
+        </record>
 
     </data>
 </odoo>

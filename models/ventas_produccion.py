@@ -9,7 +9,7 @@ class SucursalesPlaneacion(models.Model):
 
     name = fields.Char(string="Nombre")
     imagen = fields.Binary(string="Logo", attachment=True)
-    
+
     #Planeacion - Ventas
     ventas_ids = fields.One2many('ventas.produccion', 'sucursal', string="Ventas")
     ventas_cont = fields.Integer(compute='get_contadores', store=False)
@@ -361,4 +361,21 @@ class InventarioEntradas(models.Model):
         """ Used in a wizard-like form view, manual save button when in edit mode """
         return True
 
+# VENDEDORES
+class vendedoress(models.Model):
+    _name = 'vendedores.ventas'
 
+    name = fields.Char(string="Nombre")
+    tel = fields.Integer(string="Numero de Celular")
+    correo = fields.Char(string="Correo Electronico")
+    imagen = fields.Binary(string="Imagen", attachment=True)
+
+class ventas_vendedores(models.Model):
+    _inherit = 'sale.order'
+
+    vendedores = fields.Many2one('vendedores.ventas', string="Vendedor")
+
+class clientes_vendedores(models.Model):
+    _inherit = 'res.partner'
+
+    x_vendedores = fields.Many2one('vendedores.ventas', string="Vendedor Asignado")
