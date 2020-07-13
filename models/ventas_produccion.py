@@ -374,6 +374,8 @@ class ventas_vendedores(models.Model):
     _inherit = 'sale.order'
 
     vendedores = fields.Many2one('vendedores.ventas', string="Vendedor")
+    es_promocion = fields.Boolean(string="Promocion")
+
 
 class clientes_vendedores(models.Model):
     _inherit = 'res.partner'

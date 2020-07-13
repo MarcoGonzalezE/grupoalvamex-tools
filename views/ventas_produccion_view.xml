@@ -405,6 +405,7 @@
             <field name="arch" type="xml">
                 <field name="partner_shipping_id" position="after">
                   <field name="vendedores"/>
+                  <field name="es_promocion" string="Promoción"/>
                 </field>
             </field>
         </record>
