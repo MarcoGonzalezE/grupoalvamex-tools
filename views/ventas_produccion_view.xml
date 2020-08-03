@@ -140,9 +140,30 @@
                 <form>
                     <header>
                         <button type="object" name="registrar_entrada" string="Registrar Entrada" class="btn-primary"/>
+                        <button type="object" name="registrar_devolucion" string="Registrar Devolucion" class="btn-primary"/>
                         <button type="object" name="actualizar_ventas" string="Actualizar Salidas" class="btn"/>
                     </header>
-                    <sheet>                        
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="act_entradas" type="object" class="oe_stat_button" icon="fa-industry">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value"><field name="stock"/></span>
+                                    <span class="o_stat_text"> Entradas</span>
+                                </div>
+                            </button>
+                            <button name="act_salidas" type="object" class="oe_stat_button" icon="fa-truck">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value"><field name="ventas"/></span>
+                                    <span class="o_stat_text"> Salidas</span>
+                                </div>
+                            </button>
+                            <button name="act_devoluciones" type="object" class="oe_stat_button" icon="fa-refresh">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value"><field name="devoluciones"/></span>
+                                    <span class="o_stat_text"> Devoluciones</span>
+                                </div>
+                            </button>
+                        </div>                        
                         <div>
                             <field name="imagen" widget="image" class="oe_avatar"/>
                             <div class="oe_title">
@@ -150,7 +171,7 @@
                                     <h2><field name="name" placeholder="Producto" required="1"/></h2>
                                     <strong>CEDIS: </strong><field name="sucursal" required="1"/>
                                 </p>
-                            </div>
+                            </div>                            
                             <group>
                                 <table style="width:70%">
                                     <tr>
@@ -175,7 +196,7 @@
                                     <field name="entrada_ids">
                                         <tree editable="top">
                                             <field name="fecha_entrada" readonly="1"/>
-                                            <field name="entrada_stock" readonly="1" sum="entradas"/>
+                                            <field name="entrada_stock" readonly="1" sum="Entradas"/>
                                             <field name="lote" readonly="1"/>
                                             <field name="nota" readonly="1"/>
                                         </tree>
@@ -190,6 +211,17 @@
                                             <field name="product_uom"/>
                                             <field name="order_id"/>
                                             <field name="state"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                                <page string="Devoluciones">
+                                    <field name="devolucion_ids">
+                                        <tree editable="top">
+                                            <field name="transferencia_id" readonly="1" options="{'no_create': True}"/>
+                                            <field name="devolucion_stock" readonly="1" sum="Devoluciones"/>
+                                            <field name="fecha_devolucion" readonly="1"/>
+                                            <field name="lote" readonly="1"/>
+                                            <field name="nota" readonly="1"/>
                                         </tree>
                                     </field>
                                 </page>
@@ -240,6 +272,19 @@
             </field>
         </record>
 
+        <record id="ventas_produccion_inventario_view_pivot" model="ir.ui.view">
+            <field name="name">Inventario Pivot</field>
+            <field name="model">ventas.produccion.inventario</field>
+            <field name="arch" type="xml">
+                <pivot string="Inventario" display_quantity="True">
+                    <field name="sucursal" type="row"/>
+                    <field name="name"/>
+                    <field name="s_min"/>
+                    <!-- <field name="faltante_info"/> -->
+                </pivot>
+            </field>
+        </record>
+
 
         <record id="ventas_produccion_inventario_action" model="ir.actions.act_window">
             <field name="name">Inventario</field>
@@ -252,7 +297,7 @@
         <record id="ventas_produccion_pedidopt_action" model="ir.actions.act_window">
             <field name="name">Inventario Info</field>
             <field name="res_model">ventas.produccion.inventario</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,pivot</field>
             <field name="help" type="html">
                 <p>No se encontro inventario</p>
             </field>
@@ -328,12 +373,85 @@
                     <field name="nota"/>
                 </group>
                 <footer>
-                    <button string="Registrar" class="oe_highlight" name="save" type="object"/>
-                    <button string="Cancelar" class="oe_highlight" special="cancel"/>
+                    <button string="Registrar" class="oe_highlight oe_edit_only" name="save" type="object"/>
+                    <button string="Cancelar" class="oe_highlight oe_edit_only" special="cancel"/>
                 </footer>
             </form>
           </field>
-      </record>   
+      </record>
+
+    <record id="inventario_entrada_action" model="ir.actions.act_window">
+            <field name="name">Entradas</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">inventario.entradas</field>
+            <field name="view_mode">tree</field>
+    </record>
+
+    <record id="inventario_entrada_tree" model="ir.ui.view">
+        <field name="name">inventario.entradas.tree.view</field>
+        <field name="model">inventario.entradas</field>
+        <field name="arch" type="xml">
+            <tree>                
+                <field name="fecha_entrada"/>
+                <field name="entrada_stock" sum="Total Entradas"/>
+                <field name="lote"/>
+                <field name="nota"/>
+            </tree>
+        </field>
+    </record>
+
+<!-- Inventario Salidas -->
+    <record id="inventario_salidas_action" model="ir.actions.act_window">
+        <field name="name">Salidas</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.order.line</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+<!-- Inventario Devoluciones -->
+    <record id="inventario_devolicion_view_form" model="ir.ui.view">
+          <field name="name">inventario.devolucion.form.view</field>
+          <field name="model">inventario.devoluciones</field>
+          <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="devolucion_id" readonly="True"/>
+                    <field name="transferencia_id" options="{'no_create': True}"/>
+                    <field name="devolucion_stock"/>
+                    <field name="lote"/>
+                    <field name="fecha_devolucion"/>
+                </group>
+                <group>
+                    <field name="nota"/>
+                </group>
+                <footer>
+                    <button string="Registrar" class="oe_highlight oe_edit_only" name="save" type="object"/>
+                    <button string="Cancelar" class="oe_highlight oe_edit_only" special="cancel"/>
+                </footer>
+            </form>
+          </field>
+      </record>
+
+    <record id="inventario_devolucion_action" model="ir.actions.act_window">
+            <field name="name">Devoluciones</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">inventario.devoluciones</field>
+            <field name="view_mode">tree</field>
+    </record>
+
+    <record id="inventario_devolucion_tree" model="ir.ui.view">
+        <field name="name">inventario.devolucion.tree.view</field>
+        <field name="model">inventario.devoluciones</field>
+        <field name="arch" type="xml">
+            <tree>                
+                <field name="fecha_devolucion"/>
+                <field name="transferencia_id"/>
+                <field name="devolucion_stock" sum="Total Entradas"/>
+                <field name="lote"/>
+                <field name="nota"/>
+            </tree>
+        </field>
+    </record>
 
 <!-- Vendedores -->
         <record id="ventas_vendedores_action" model="ir.actions.act_window">

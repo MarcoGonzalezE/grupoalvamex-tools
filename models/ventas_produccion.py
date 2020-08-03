@@ -238,14 +238,70 @@ class VentasProduccionInvetario(models.Model):
     stock = fields.Float(string="Stock", compute="suma_entradas")
     stock_total = fields.Float(string="Stock Total", compute="stock_totales")
     entrada_ids = fields.One2many('inventario.entradas', 'entrada_id', string="Entradas de Inventario")
+    devolucion_ids = fields.One2many('inventario.devoluciones', 'devolucion_id', string="Devoluciones de Inventario")
     ventas_ids = fields.Many2many('sale.order.line', string="Ventas")
     info = fields.Float(string="Stock", compute="total_info")
     imagen = fields.Binary(string="Imagen", attachment=True)
     ventas = fields.Float(string="Ventas", compute="suma_ventas")
+    devoluciones = fields.Float(string="Devoluciones", compute="suma_devoluciones")
     s_min = fields.Float(string="Stock Minimo")
-    s_fal = fields.Float(string="Stock Faltante", compute="stock_fl")
+    s_fal = fields.Float(string="Stock Faltante", compute='stock_fl')
     mensaje = fields.Text(string="Mensaje", compute="total_info")
     sucursal = fields.Many2one('sucursales.planeacion', string="CEDIS")
+    #faltante_info = fields.Float(string="Faltante", related="s_fal", store=True)
+
+    @api.multi
+    def act_entradas(self):
+        action = self.env.ref('grupoalvamex_tools.inventario_entrada_action')
+
+        result = {
+            'name': action.name,
+            'help': action.help,
+            'type': action.type,
+            'view_type': action.view_type,
+            'view_mode': action.view_mode,
+            'target': action.target,
+            'context': action.context,
+            'res_model': action.res_model,
+        }
+
+        result['domain'] = "[('id','in',[" + ','.join(map(str, self.entrada_ids.ids)) + "])]"
+        return result
+
+    @api.multi
+    def act_salidas(self):
+        action = self.env.ref('grupoalvamex_tools.inventario_salidas_action')
+
+        result = {
+            'name': action.name,
+            'help': action.help,
+            'type': action.type,
+            'view_type': action.view_type,
+            'view_mode': action.view_mode,
+            'target': action.target,
+            'context': action.context,
+            'res_model': action.res_model,
+        }
+
+        result['domain'] = "[('id','in',[" + ','.join(map(str, self.ventas_ids.ids)) + "])]"
+        return result
+
+    @api.multi
+    def act_devoluciones(self):
+        action = self.env.ref('grupoalvamex_tools.inventario_devolucion_action')
+
+        result = {
+            'name': action.name,
+            'help': action.help,
+            'type': action.type,
+            'view_type': action.view_type,
+            'view_mode': action.view_mode,
+            'target': action.target,
+            'context': action.context,
+            'res_model': action.res_model,
+        }
+        result['domain'] = "[('id','in',[" + ','.join(map(str, self.devolucion_ids.ids)) + "])]"
+        return result
 
     @api.depends('s_min','stock_total')
     def stock_fl(self):
@@ -260,6 +316,7 @@ class VentasProduccionInvetario(models.Model):
             # if r.stock_total >= r.s_min:
             #     r.s_fal = 0
 
+    # SUMA LAS ENTRADAS
     @api.multi
     def suma_entradas(self):
         for r in self:
@@ -280,8 +337,19 @@ class VentasProduccionInvetario(models.Model):
         # except ValueError:
         #     return None
 
+    # SUMA DEVOLUCIONES
     @api.multi
-    def suma_ventas(self):
+    def suma_devoluciones(self):
+        for r in self:
+            devolucion = self.env['inventario.devoluciones'].search([('devolucion_id','=', r.id)])
+            suma_dev = 0
+            if devolucion is not None:
+                for rec in devolucion:
+                    suma_dev = suma_dev + rec.devolucion_stock
+                r.devoluciones = suma_dev
+
+    @api.multi
+    def suma_ventas(self):        
         for r in self:
             orden_pv = self.env['ventas.produccion'].search([('estado', '=', 'final'), ('sucursal', '=', r.sucursal.id)])
             i = 0
@@ -292,10 +360,12 @@ class VentasProduccionInvetario(models.Model):
                     for rec in venta_lines:
                         suma_pv += rec.product_uom_qty
                     r.ventas = suma_pv
+                    
 
-    def actualizar_ventas(self):
-        self.ventas_ids = False
+    @api.multi
+    def actualizar_ventas(self):        
         for r in self:
+            r.ventas_ids = False
             orden_pv = self.env['ventas.produccion'].search([('estado', '=', 'final'), ('sucursal', '=', r.sucursal.id)])
             for pv in orden_pv:
                 for venta in pv.ventas_id:
@@ -317,10 +387,10 @@ class VentasProduccionInvetario(models.Model):
                 r.mensaje = False
 
     @api.multi
-    @api.depends('stock','ventas')
+    @api.depends('stock','ventas','devoluciones')
     def stock_totales(self):
         for r in self:
-            r.stock_total = r.stock - r.ventas     
+            r.stock_total = r.stock - r.ventas - r.devoluciones    
 
     @api.multi
     def registrar_entrada(self):
@@ -332,6 +402,19 @@ class VentasProduccionInvetario(models.Model):
             'view_name': 'form',
             'res_model': 'inventario.entradas',
             'context': {'default_entrada_id': self.id},
+            'target': 'new'
+        }
+
+    @api.multi
+    def registrar_devolucion(self):
+        return{
+            'name': "Registrar Devolucion",
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'view_name': 'form',
+            'res_model': 'inventario.devoluciones',
+            'context': {'default_devolucion_id': self.id},
             'target': 'new'
         }
 
@@ -350,7 +433,7 @@ class InventarioEntradas(models.Model):
     entrada_stock = fields.Float(string="Cantidad")
     fecha_entrada = fields.Date(string="Fecha")
     lote = fields.Char(string="Lote")
-    nota = fields.Text(string="Nota:")
+    nota = fields.Text(string="Nota")
 
     @api.model
     def create(self, values):
@@ -360,6 +443,36 @@ class InventarioEntradas(models.Model):
     def save(self):
         """ Used in a wizard-like form view, manual save button when in edit mode """
         return True
+
+class InventarioDevoluciones(models.Model):
+    _name = 'inventario.devoluciones'
+
+    devolucion_id = fields.Many2one('ventas.produccion.inventario', string="Entrada")
+    transferencia_id = fields.Many2one('stock.picking', string="Transferencia")
+    devolucion_stock = fields.Float(string="Cantidad")
+    fecha_devolucion = fields.Date(string="Fecha")
+    lote = fields.Char(string="Lote")
+    nota = fields.Text(string="Nota")
+
+    @api.model
+    def create(self, values):
+         return super(InventarioDevoluciones, self).create(values)
+
+    @api.multi
+    def save(self):
+        """ Used in a wizard-like form view, manual save button when in edit mode """
+        return True
+
+    @api.multi
+    @api.onchange('transferencia_id')
+    def cantidad_devolucion(self):
+        cantidad = 0
+        producto = self.env['stock.pack.operation'].search([('picking_id','=',self.transferencia_id.id),('product_id','=',self.devolucion_id.name.id)])
+        for p in producto:
+            cantidad = cantidad + p.qty_done
+        self.devolucion_stock = cantidad
+
+        
 
 # VENDEDORES
 class vendedoress(models.Model):
