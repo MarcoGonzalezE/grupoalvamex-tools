@@ -7,7 +7,8 @@
             <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
             <field name="arch" type="xml">
                 <xpath expr="//button[@name='button_scrap']" position="after">
-                    <button name="action_op_funtion" string="Costear" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'done'),('costeado','=',True)]}" groups="grupoalvamex_tools.tk_group_functions"/>                    
+                    <button name="action_op_funtion" string="Costear" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state','!=', 'done'),('costeado','=',True)]}" groups="grupoalvamex_tools.tk_group_functions"/>
+                    <button name="action_unbuild" string="Cancelar" type="object" attrs="{'invisible': ['|',('anulado','=', True),('state','!=','done')]}" groups="grupoalvamex_tools.tk_group_functions"/>
                 </xpath>                
                 <!-- <xpath expr="//sheet//notebook//page[3]//group//group//field[@name='location_dest_id']" position="after"> -->
                 <xpath expr="//field[@name='origin']" position="after">
@@ -21,6 +22,7 @@
                 </xpath>
                 <xpath expr="//field[@name='origin']" position="after">
                     <field name="costeado" readonly="1"/>
+                    <field name="anulado" readonly="1"/>
                 </xpath>
             </field>
         </record>
