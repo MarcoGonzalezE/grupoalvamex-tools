@@ -14,6 +14,7 @@ class MkOP(models.Model):
     orden_producion_costear = fields.Char('Orden de Produccion', compute="_compute_orden")
     state = fields.Selection()
     costeado = fields.Boolean(string="Costeado")
+    anulado = fields.Boolean(string="Anulado")
 
     @api.depends('name')
     def _compute_orden(self):
@@ -67,10 +68,20 @@ class MkOP(models.Model):
         res = self.env.cr.dictfetchall()
         print (res)
 
-
-
-
-
-
-
-
+#DESCONTRUCCION
+    def action_unbuild(self):        
+        new_unbuild = self.env['mrp.unbuild']
+        new_unbuild.create({'product_id':self.product_id.id,
+            'mo_id':self.id,
+            'bom_id':self.bom_id.id,
+            'product_qty':self.product_qty,
+            'location_id':self.location_dest_id.id,
+            'location_dest_id':self.location_src_id.id,
+            'product_uom_id':self.product_uom_id.id,
+            'state':'done'})
+        #new_unbuild.action_unbuild()
+        descontruccion = new_unbuild.search([('mo_id','=',self.id)])
+        descontruccion.action_unb_funcion()
+        self.state = 'cancel'
+        self.anulado = True
+        self.message_post(body=_("Cancelada por %s") % (descontruccion.name))
