@@ -160,7 +160,7 @@
                             <button name="act_devoluciones" type="object" class="oe_stat_button" icon="fa-refresh">
                                 <div class="o_form_field o_stat_info">
                                     <span class="o_stat_value"><field name="devoluciones"/></span>
-                                    <span class="o_stat_text"> Devoluciones</span>
+                                    <span class="o_stat_text"> Internas</span>
                                 </div>
                             </button>
                         </div>                        
@@ -214,11 +214,12 @@
                                         </tree>
                                     </field>
                                 </page>
-                                <page string="Devoluciones">
+                                <page string="Internas">
                                     <field name="devolucion_ids">
                                         <tree editable="top">
                                             <field name="transferencia_id" readonly="1" options="{'no_create': True}"/>
                                             <field name="devolucion_stock" readonly="1" sum="Devoluciones"/>
+                                            <field name="tipo" readonly="1"/>
                                             <field name="fecha_devolucion" readonly="1"/>
                                             <field name="lote" readonly="1"/>
                                             <field name="nota" readonly="1"/>
@@ -416,8 +417,14 @@
             <form>
                 <group>
                     <field name="devolucion_id" readonly="True"/>
-                    <field name="transferencia_id" options="{'no_create': True}"/>
+                    <field name="transferencia_id" options="{'no_create': True}"/>                    
                     <field name="devolucion_stock"/>
+                    <label for="tipo"/>
+                    <div name="tipo_div" class="o_row">
+                        <field name="tipo"/>
+                        <label for="a_favor"/>
+                        <field name="a_favor"/>
+                    </div>
                     <field name="lote"/>
                     <field name="fecha_devolucion"/>
                 </group>
@@ -524,6 +531,7 @@
                 <field name="partner_shipping_id" position="after">
                   <field name="vendedores"/>
                   <field name="es_promocion" string="Promoción"/>
+                  <field name="planeacion_id" readonly="1"/>
                 </field>
             </field>
         </record>

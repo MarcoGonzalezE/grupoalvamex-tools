@@ -4,6 +4,7 @@ from odoo import _, fields, models, api
 from odoo.exceptions import UserError, ValidationError
 import datetime, exceptions, warnings
 
+#CENTROS DE DISTRIBUCION
 class SucursalesPlaneacion(models.Model):
     _name = 'sucursales.planeacion'
 
@@ -59,7 +60,7 @@ class SucursalesPlaneacion(models.Model):
         result['domain'] = "[('id','in',["+','.join(map(str, self.inventario_ids.ids))+"])]"
         return result
 
-
+#ORDENES DE PLANEACION
 class ventas_produccion(models.Model):
     _name = 'ventas.produccion'
     _inherit = ['mail.thread']
@@ -113,6 +114,8 @@ class ventas_produccion(models.Model):
     def cancelado(self):
         for r in self:
             r.estado = 'cancel'
+            for venta in r.ventas_id:
+                venta.planeacion_id = False
 
     #VALIDACION DE SALIDA
     @api.multi
@@ -162,6 +165,7 @@ class ventas_produccion(models.Model):
     #         print("Producto:" + str(productos.name))
     #         print("Suma:" + str(suma))
 
+#PRESUPUESTOS DE VENTAS
 class sale_order(models.Model):
     _inherit = 'sale.order'
 
@@ -177,6 +181,7 @@ class sale_order(models.Model):
             'target': 'new'
         }
 
+#TRANSACCION DE PRESUPUESTO A ORDEN DE PLANEACION
 class VentasPlaneacionProduccion(models.TransientModel):
     _name = 'ventas.produccion.planeacion'
 
@@ -206,6 +211,7 @@ class VentasPlaneacionProduccion(models.TransientModel):
             lineas_ventas = self.env['sale.order.line'].search([('order_id','=',venta.id)])
             message = _('<strong>Planeacion:</strong> %s </br>') % (', '.join(planeacion.mapped('name')))
             venta.message_post(body=message)
+            venta.planeacion_id = planeacion.id
             for linea in lineas_ventas:
                 planeacion.write({'producto':[(4, linea.id)]})
 
@@ -221,15 +227,17 @@ class VentasPlaneacionProduccion(models.TransientModel):
 
     @api.model
     def validate(self, reports):
-        # if len(reports.mapped('operating_unit_id')) > 1:
-        #     raise ValidationError(
-        #         _('All reports must be in the same Operating Unit'))
+        if len(reports.mapped('planeacion_id')):
+            raise ValidationError(
+                 _('El pedido ya tiene asignado una Orden de Planeacion \n Cancelé la planeacion activa para generar una nueva'))
         if len(reports.mapped('partner_id')) > 1:
             raise ValidationError(
                 _('Todos los pedidos deben de tener el mismo CLIENTE'))
         # if reports.mapped('order_id'):
         #     raise ValidationError(
         #         _('All least one record has an order assigned'))
+
+#INVENTARIO DE PLANEACION
 class VentasProduccionInvetario(models.Model):
     _name = 'ventas.produccion.inventario'
     _description = "Inventario de Produccion"
@@ -345,23 +353,61 @@ class VentasProduccionInvetario(models.Model):
             suma_dev = 0
             if devolucion is not None:
                 for rec in devolucion:
-                    suma_dev = suma_dev + rec.devolucion_stock
+                    if rec.a_favor == True:
+                        suma_dev = suma_dev - rec.devolucion_stock
+                    else:
+                        suma_dev = suma_dev + rec.devolucion_stock
                 r.devoluciones = suma_dev
+                
+    #SUMA DE VENTAS
+    # @api.multi
+    # def suma_ventas(self):        
+    #     for r in self:
+    #         orden_pv = self.env['ventas.produccion'].search([('estado', '=', 'final'), ('sucursal', '=', r.sucursal.id)])
+    #         i = 0
+    #         suma_pv = 0
+    #         for pv in orden_pv:
+    #             for venta in pv.ventas_id:#campo many2many
+    #                 venta_lines = self.env['sale.order.line'].search([('order_id', '=', venta.id),('product_id', '=', r.name.id)])
+    #                 for rec in venta_lines:
+    #                     suma_pv += rec.product_uom_qty
+    #                 r.ventas = suma_pv
 
     @api.multi
-    def suma_ventas(self):        
+    def suma_ventas(self):
         for r in self:
-            orden_pv = self.env['ventas.produccion'].search([('estado', '=', 'final'), ('sucursal', '=', r.sucursal.id)])
-            i = 0
-            suma_pv = 0
-            for pv in orden_pv:
-                for venta in pv.ventas_id:#campo many2many
-                    venta_lines = self.env['sale.order.line'].search([('order_id', '=', venta.id),('product_id', '=', r.name.id)])
-                    for rec in venta_lines:
-                        suma_pv += rec.product_uom_qty
-                    r.ventas = suma_pv
-                    
+            query =  """select sum(sol.product_uom_qty) as s_ventas
+                        from sale_order_line_ventas_produccion_rel vp_r
+                        inner join ventas_produccion vp ON vp.id = vp_r.ventas_produccion_id
+                        inner join sale_order_line sol ON sol.id = vp_r.sale_order_line_id
+                        where sol.product_id = %s and vp.sucursal = %s and vp.estado = 'final';"""
+            params = [r.name.id, r.sucursal.id]
+            r.env.cr.execute(query, tuple(params))
+            res = r.env.cr.fetchone()[0]
+            r.ventas = res
 
+    # def fnInventarioPlaneacion(self):
+    #     query ="""CREATE OR REPLACE FUNCTION public.inventario_planeacion(x_producto integer, x_sucursal integer)
+    #             RETURNS void AS
+    #             $BODY$
+    #             DECLARE
+    #                 r record;
+    #                 c CURSOR FOR select sum(sol.product_uom_qty) as s_ventas, sol.product_id as producto_id, vp.sucursal as sucursal_id
+    #                     from sale_order_line_ventas_produccion_rel vp_r
+    #                     inner join ventas_produccion vp ON vp.id = vp_r.ventas_produccion_id
+    #                     inner join sale_order_line sol ON sol.id = vp_r.sale_order_line_id
+    #                     where sol.product_id in (x_producto) and vp.sucursal in (x_sucursal) and vp.estado = 'final'
+    #                     group by sol.product_id, vp.sucursal;
+    #                 BEGIN
+    #                     FOR r IN c LOOP
+    #                         update ventas_produccion_inventario set ventas = r.s_ventas where name = r.producto_id and sucursal = r.sucursal_id;
+    #                     END LOOP;
+    #                 END;
+    #             $BODY$
+    #             LANGUAGE plpgsql VOLATILE
+    #             COST 100;"""
+    #     self.env.cr.execute(query)
+                    
     @api.multi
     def actualizar_ventas(self):        
         for r in self:
@@ -418,7 +464,7 @@ class VentasProduccionInvetario(models.Model):
             'target': 'new'
         }
 
-#TODO: TRABAJANDO
+    #TODO: TRABAJANDO
     @api.multi
     def cantidad_producto(self):
         for venta in self.ventas_id:
@@ -426,6 +472,7 @@ class VentasProduccionInvetario(models.Model):
             venta_lin = self.env['sale.order.line'].search([('order_id','=', venta_or.id)])
             #for lineas in venta_lin:
 
+#ENTRADAS DE INVENTIRIO
 class InventarioEntradas(models.Model):
     _name = 'inventario.entradas'
 
@@ -444,6 +491,7 @@ class InventarioEntradas(models.Model):
         """ Used in a wizard-like form view, manual save button when in edit mode """
         return True
 
+#SALIDAS INTERNAS
 class InventarioDevoluciones(models.Model):
     _name = 'inventario.devoluciones'
 
@@ -453,6 +501,8 @@ class InventarioDevoluciones(models.Model):
     fecha_devolucion = fields.Date(string="Fecha")
     lote = fields.Char(string="Lote")
     nota = fields.Text(string="Nota")
+    tipo = fields.Many2one('inventario.devoluciones.tipo', string="Tipo")
+    a_favor = fields.Boolean(string="A Favor")
 
     @api.model
     def create(self, values):
@@ -472,9 +522,13 @@ class InventarioDevoluciones(models.Model):
             cantidad = cantidad + p.qty_done
         self.devolucion_stock = cantidad
 
-        
+#LISTA DE TIPOS DE SALIDAS
+class InventarioDevolucionesTipos(models.Model):
+    _name = 'inventario.devoluciones.tipo'
 
-# VENDEDORES
+    name = fields.Char(string="Nombre")
+
+#LISTA DE VENDEDORES
 class vendedoress(models.Model):
     _name = 'vendedores.ventas'
 
@@ -483,13 +537,15 @@ class vendedoress(models.Model):
     correo = fields.Char(string="Correo Electronico")
     imagen = fields.Binary(string="Imagen", attachment=True)
 
+#VENDEDORES EN PEDIDOS DE VENTA
 class ventas_vendedores(models.Model):
     _inherit = 'sale.order'
 
     vendedores = fields.Many2one('vendedores.ventas', string="Vendedor")
     es_promocion = fields.Boolean(string="Promocion")
+    planeacion_id = fields.Many2one('ventas.produccion', string="Orden de planeacion")
 
-
+#VENDEDORES POR CLIENTE
 class clientes_vendedores(models.Model):
     _inherit = 'res.partner'
 
