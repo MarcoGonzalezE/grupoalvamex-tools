@@ -37,6 +37,7 @@
         'views/produccion_costeo_view.xml',
         'views/fabricacion_descontruccion_asientos_contables.xml',
         'views/ventas_produccion_view.xml',
+        'views/ventas_reporte_cotizacion.xml',
     ],
     # only loaded in demonstration mode
     'demo': ['demo/demo.xml'],    

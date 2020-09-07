@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+    	<report id="cotizacion_ventas" string="Cotizacion" model="sale.order" report_type="qweb-pdf" name="grupoalvamex_tools.reporte_cotizacion" paperformat="account_check_printing_report_base.paperformat_check"/>
+    	<template id="reporte_cotizacion">
+    		<t t-call="report.html_container">
+    			<t t-foreach="docs" t-as="o">
+    				<div class="page">
+			    		<table width="100%">
+			    			<th>
+			    				<td>
+			    					<img t-if="o.company_id.logo" t-att-src="'data:image/png;base64,%s' % o.company_id.logo" style="max-height: 145px;"/>
+			    				</td>
+			    				<td class="text-right">
+			    					<p><strong><span t-field="o.company_id.name"/></strong><br/>
+			    					<span t-field="o.company_id.street"/><br/>
+			    					<span style="text-transform: uppercase;" t-field="o.company_id.locality_sat_id.name"/>, <span style="text-transform: uppercase;" t-field="o.company_id.state_id"/>, <span style="text-transform: uppercase;" t-field="o.company_id.country_id.name"/><br/>
+			    					R.F.C. <span t-field="o.company_id.rfc"/><br/>
+			    					Tel: <span t-field="o.company_id.phone"/><br/>
+			    					Correo: <span t-field="o.company_id.email"/></p>
+			    				</td>
+			    			</th>
+			    		</table>
+			    		<br/>
+			    		<div class="row">
+			                <div class="col-xs-6">
+			                    <strong t-if="o.partner_shipping_id == o.partner_invoice_id">Dirección de facturación:</strong>
+			                    <!-- <strong t-if="o.partner_shipping_id != o.partner_invoice_id">Invoicing address:</strong> -->
+			                    <p>
+			                    	<span t-field="o.partner_invoice_id.name"/><br/>
+			                    	<span t-field="o.partner_invoice_id.street"/><br/>
+			                    	<span t-field="o.partner_invoice_id.locality_sat_id.name"/>, <span t-field="o.partner_invoice_id.state_id"/><br/>
+			                    	Tel: <span t-field="o.partner_invoice_id.phone"/><br/>
+			                    	<t t-if="o.partner_invoice_id.vat">R.F.C. <span t-field="o.partner_invoice_id.vat"/></t><br/>
+			                    </p>
+			                    <!-- <div t-if="o.partner_shipping_id != o.partner_invoice_id" class="mt8">
+			                        <strong>Shipping address:</strong>
+			                        <div t-field="o.partner_shipping_id"
+			                            t-options='{"widget": "contact", "fields": ["address", "name", "phone", "fax"], "no_marker": True, "phone_icons": True}'/>
+			                        <p t-if="o.partner_shipping_id.vat">VAT: <span t-field="o.partner_shipping_id.vat"/></p>
+			                    </div> -->
+			                </div>
+			            </div>
+
+			            <h2>
+			                <span t-if="o.state not in ['draft','sent']">Pedido # </span>
+			                <span t-if="o.state in ['draft','sent']">Presupuesto # </span>
+			                <span t-field="o.name"/>
+			            </h2>
+
+			            <div class="row mt32 mb32" id="informations">
+			            	<div t-if="o.client_order_ref" class="col-xs-3">
+                    			<strong>Su Referencia:</strong>
+                    			<p t-field="o.client_order_ref"/>
+                			</div>
+			                <div t-if="o.date_order" class="col-xs-3">
+			                    <strong t-if="o.state not in ['draft','sent']">Fecha pedido:</strong>
+			                    <strong t-if="o.state in ['draft','sent']">Fecha presupuesto:</strong>
+			                    <p t-field="o.date_order"/>
+			                </div>
+			                <div t-if="o.user_id.name" class="col-xs-3">
+			                    <strong>Comercial:</strong>
+			                    <p t-field="o.user_id"/>
+			                </div>
+			                <div name="payment_term" t-if="o.payment_term_id" class="col-xs-3">
+			                    <strong>Plazos de pago:</strong>
+			                    <p t-field="o.payment_term_id"/>
+			                </div>
+			            </div>
+
+			            <!-- Is there a discount on at least one line? -->
+			            <t t-set="display_discount" t-value="any([l.discount for l in o.order_line])"/>
+
+			            <t t-foreach="o.order_lines_layouted()" t-as="page">
+			                <table class="table table-condensed">
+			                    <thead>
+			                        <tr>
+			                            <th>Descripción</th>
+			                            <th class="text-right">Cantidad</th>
+			                            <th class="text-right">Kilos</th>
+			                            <th class="text-right">Precio unitario</th>
+			                            <th t-if="display_discount" class="text-right" groups="sale.group_discount_per_so_line">Disc.(%)</th>
+			                            <th class="text-right">Impuestos</th>
+			                            <th class="text-right" groups="sale.group_show_price_subtotal">Precio</th>
+			                            <th class="text-right price_tax_included" groups="sale.group_show_price_total">Total Price</th>
+			                        </tr>
+			                   </thead>
+			                   <tbody class="sale_tbody">
+			                        <t t-foreach="page" t-as="layout_category">
+
+			                            <t t-if="layout_category_size > 1 or page_size > 1" groups="sale.group_sale_layout">
+			                                <tr class="active">
+			                                    <td colspan="7" style="font-weight: bold; border-bottom: 1px solid black;">&amp;bull;
+			                                        <t t-esc="layout_category['name']"/>
+			                                    </td>
+			                                </tr>
+			                            </t>
+
+			                            <!-- Lines associated -->
+			                            <t t-foreach="layout_category['lines']" t-as="l">
+			                                <tr>
+			                                    <td><span t-field="l.name"/></td>
+			                                    <td class="text-right">
+			                                        <span t-field="l.product_uom_qty"/>
+			                                        <span t-field="l.product_uom" groups="product.group_uom"/>
+			                                    </td>
+			                                    <td class="text-right">
+			                                    	<span t-field="l.kilos"/>
+			                                    </td>
+			                                    <td class="text-right">
+			                                        <span t-field="l.price_unit"/>
+			                                    </td>
+			                                    <td t-if="display_discount" class="text-right" groups="sale.group_discount_per_so_line">
+			                                        <span t-field="l.discount"/>
+			                                    </td>
+			                                    <td class="text-right">
+			                                        <span t-esc="', '.join(map(lambda x: (x.description or x.name), l.tax_id))"/>
+			                                    </td>
+			                                    <td class="text-right" groups="sale.group_show_price_subtotal">
+			                                        <span t-field="l.price_subtotal"
+			                                            t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'/>
+			                                    </td>
+			                                    <td class="text-right" groups="sale.group_show_price_total">
+			                                        <span t-field="l.price_total"
+			                                            t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'/>
+			                                    </td>
+			                                </tr>
+			                            </t>
+				                            <tr>
+			                                    <td class="text-right"><strong>Total</strong></td>
+			                                    <td class="text-right"><strong><span t-esc="sum(l.product_uom_qty for l in layout_category['lines'])"/></strong></td>
+			                                    <td class="text-right"><strong><span t-esc="sum(l.kilos for l in layout_category['lines'])"/></strong></td>
+			                                    <td></td>
+			                                    <td></td>
+			                                    <td></td>
+			                                </tr>
+			                            <t t-if="(layout_category_size > 1 or page_size > 1) and layout_category['subtotal']" groups="sale.group_sale_layout">
+			                                <tr class="text-right">
+			                                    <td colspan="6">
+			                                        <strong>Subtotal: </strong>
+			                                        <t t-set="subtotal" t-value="sum(line.price_subtotal for line in layout_category['lines'])"/>
+			                                        <span t-esc="subtotal" t-options="{'widget': 'monetary', 'display_currency': o.pricelist_id.currency_id}"/>
+			                                    </td>
+			                                </tr>
+			                            </t>
+
+			                        </t>
+			                    </tbody>
+			                </table>
+
+			                <t t-if="page_index &lt; page_size - 1" groups="sale.group_sale_layout">
+			                    <p style="page-break-before:always;"> </p>
+			                </t>
+			            </t>
+
+			            <div class="row" name="total">
+			                <div class="col-xs-4 pull-right">
+			                    <table class="table table-condensed">
+			                        <tr class="border-black">
+			                            <td><strong>Total Sin Impuestos</strong></td>
+			                            <td class="text-right">
+			                                <span t-field="o.amount_untaxed"
+			                                    t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'/>
+			                            </td>
+			                        </tr>
+			                        <t t-foreach="o._get_tax_amount_by_group()" t-as="amount_by_group">
+			                            <tr>
+			                                <td><span t-esc="amount_by_group[0] or 'Taxes'"/></td>
+			                                <td class="text-right">
+			                                    <span t-esc="amount_by_group[1]"
+			                                        t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'/>
+			                                </td>
+			                            </tr>
+			                        </t>
+			                        <tr class="border-black">
+			                            <td><strong>Total</strong></td>
+			                            <td class="text-right">
+			                                <span t-field="o.amount_total"
+			                                    t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'/>
+			                            </td>
+			                        </tr>
+			                    </table>
+			                </div>
+			            </div>
+			            <br/>
+			            <table width="100%">
+			    			<th>
+			    				<td>
+			    					<strong>Dirección de entrega:</strong>
+			    					<p>
+			    						<span t-field="o.partner_shipping_id.name"/><br/>
+			    						<span t-field="o.partner_shipping_id.street"/><br/>
+			    						<span t-field="o.partner_shipping_id.locality_sat_id.name"/>, <span t-field="o.partner_shipping_id.state_id"/>
+			    					</p>
+			    					<p><strong>Tiempo de entrega:</strong> 3 días hábiles.</p>
+			    					<p><strong>Condiciones de Pago:</strong> Anticipado</p>
+			    					<p><strong>Nota: </strong><span t-field="o.note"/></p>
+					            </td>
+					        </th>
+					    </table>
+					    <table width="100%">
+					    	<th>
+					    		<td>
+					            	<br/>
+					            	<p align="center">Atentamente<br/>
+					            	<strong><span t-field="o.company_id.name"/></strong><br/>
+					                LIC. ESMERALDA GUADALUPE CRUZ HERNÁNDEZ</p>
+					            </td>
+					        </th>
+						</table>
+		        	</div>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>
