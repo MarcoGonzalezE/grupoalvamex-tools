@@ -82,7 +82,7 @@ class ReporteVentas(models.TransientModel):
 			invoice_total)
 			SELECT * FROM sales_report_period(%s,%s)"""
 		query_fact = """INSERT INTO reporte_facturas_object
-			(invoice,
+			(invoice,date_invoice,state,residual,paid_in_cash,
 			default_code,
 			product,
 			invoice_units,
@@ -142,7 +142,8 @@ class ReporteVentas(models.TransientModel):
 
 	def _sql_consulta_facturas_periodo(self):
 		query = """CREATE OR REPLACE FUNCTION public.invoice_report_period(x_fecha_inicio date, x_fecha_final date)
-			RETURNS TABLE(factura character varying,
+			RETURNS TABLE(factura character varying, fecha character varying, estado TEXT, 
+			    residual numeric, pagado_en_caja TEXT, 
 				sku character varying, 
 				producto character varying, 
 				unidades_facturadas numeric, 
@@ -157,6 +158,10 @@ class ReporteVentas(models.TransientModel):
 				CREATE TEMP TABLE CONSULTA_FACTURAS ON COMMIT DROP AS(
 				SELECT
 				ai.number as FACTURA,
+				CAST(ai.date_invoice as character varying) as Fecha,
+				CASE WHEN ai.state = 'paid' then 'PAGADO' else 'ABIERTA' END as Estado,
+				sum(ai.residual) as Adeudo,
+				CASE When ai.paid_in_cash = 't' then 'PAGADO' else 'NO PAGADO' END as Pagado_En_Caja,
 				pt.default_code as SKU,
 				pt.name as PRODUCTO,
 				sum(ail.quantity) UNIDADES_FACTURADAS,
@@ -172,12 +177,11 @@ class ReporteVentas(models.TransientModel):
    				inner join sale_order_line sol on sol.id = rel.order_line_id
    				where ai.date between x_fecha_inicio and x_fecha_final and (ai.state = 'open' or ai.state = 'paid')
    				and pt.default_code like 'PT%'
-   				group by ai.number,pt.default_code,pt.name
+   				group by ai.number,ai.date_invoice, ai.state, ai.paid_in_cash, pt.default_code,pt.name
    				order by pt.default_code
    				);
-
+   				
    				RETURN QUERY
-
    				SELECT *
    				FROM CONSULTA_FACTURAS q
    				order by q.factura;
@@ -208,6 +212,9 @@ class ReporteVentas(models.TransientModel):
 				sum_total_kgs_pig += i.invoice_kgs
 
 		workbook = xlwt.Workbook()
+		miles_style = xlwt.easyxf("", "#,##0.00")
+		currency_style = xlwt.easyxf("",'"$"#,##0.00_);("$"#,##',)
+
 		column_heading_style = easyxf('font:height 200;font:bold True;')
 		worksheet = workbook.add_sheet('Reporte de Ventas')
 		worksheet.write(1, 3, 'REPORTE DE VENTAS'),easyxf('font:bold True;align: horiz center;')
@@ -221,55 +228,70 @@ class ReporteVentas(models.TransientModel):
 		worksheet.write(4, 5, _('Precio Venta/Kilo'), column_heading_style)
 		worksheet.write(4, 6, _('Total Facturado'), column_heading_style)
 
+		worksheet.col(0).width = 4000
+		worksheet.col(1).width = 12000
+		worksheet.col(2).width = 4000
+		worksheet.col(3).width = 4000
+		worksheet.col(4).width = 4000
+		worksheet.col(5).width = 4000
+		worksheet.col(6).width = 4000
+		worksheet.col(7).width = 4000
+
 		row = 5
 		resumen = self.env['reporte.ventas.object'].search([])
 		for r in resumen:
 			#worksheet.write(row, 0, r.date_invoice)
 			worksheet.write(row, 0, r.default_code)
 			worksheet.write(row, 1, r.product)
-			worksheet.write(row, 2, r.invoice_units)
-			worksheet.write(row, 3, r.sale_price_unit)
-			worksheet.write(row, 4, r.invoice_kgs)
-			worksheet.write(row, 5, r.sale_price_kgs)
-			worksheet.write(row, 6, r.invoice_total)
+			worksheet.write(row, 2, r.invoice_units, miles_style)
+			worksheet.write(row, 3, r.sale_price_unit, currency_style)
+			worksheet.write(row, 4, r.invoice_kgs, miles_style)
+			worksheet.write(row, 5, r.sale_price_kgs, currency_style)
+			worksheet.write(row, 6, r.invoice_total, currency_style)
 			row += 1
 		sig = row
-
-
 		worksheet.write(sig + 1, 1, 'AVICOLA'),easyxf('font:bold True;align: horiz center;')
 		worksheet.write(sig + 2, 0, _('Total Facturado'), column_heading_style)
-		worksheet.write(sig + 2, 1, sum_total_invoiced_poultry)
+		worksheet.write(sig + 2, 1, sum_total_invoiced_poultry,currency_style)
 		worksheet.write(sig + 3, 0, _('Total Kilogramos Facturados '), column_heading_style)
-		worksheet.write(sig + 3, 1, sum_total_kgs_poultry)
+		worksheet.write(sig + 3, 1, sum_total_kgs_poultry,miles_style)
 
 		worksheet.write(sig + 1, 5, 'PORCICOLA'),easyxf('font:bold True;align: horiz center;')
 		worksheet.write(sig + 2, 4, _('Total Facturado'), column_heading_style)
-		worksheet.write(sig + 2, 5, sum_total_invoiced_pig)
+		worksheet.write(sig + 2, 5, sum_total_invoiced_pig,currency_style)
 		worksheet.write(sig + 3, 4, _('Total Kilogramos Facturados '), column_heading_style)
-		worksheet.write(sig + 3, 5, sum_total_kgs_pig)
+		worksheet.write(sig + 3, 5, sum_total_kgs_pig,miles_style)
 
 		#FACTURAS
 		worksheet_f = workbook.add_sheet('Reporte de Facturas')
 		worksheet_f.write(1, 3, 'FACTURAS'),easyxf('font:bold True;align: horiz center;')
 		worksheet_f.write(2, 0, _('Factura'), column_heading_style)
-		worksheet_f.write(2, 1, _('Codigo'), column_heading_style)
-		worksheet_f.write(2, 2, _('Producto'), column_heading_style)
-		worksheet_f.write(2, 3, _('Unidades Facturadas'), column_heading_style)
-		worksheet_f.write(2, 4, _('Precio Venta/Unidad'), column_heading_style)
-		worksheet_f.write(2, 5, _('Kg. Facturados'), column_heading_style)
-		worksheet_f.write(2, 6, _('Precio Venta/Kilo'), column_heading_style)
-		worksheet_f.write(2, 7, _('Total Facturado'), column_heading_style)
+		worksheet_f.write(2, 1, _('Fecha'), column_heading_style)
+		worksheet_f.write(2, 2, _('Estado'), column_heading_style)
+		worksheet_f.write(2, 3, _('Pagado en Caja'), column_heading_style)
+		worksheet_f.write(2, 4, _('Codigo'), column_heading_style)
+		worksheet_f.write(2, 5, _('Producto'), column_heading_style)
+		worksheet_f.write(2, 6, _('Unidades Facturadas'), column_heading_style)
+		worksheet_f.write(2, 7, _('Precio Venta/Unidad'), column_heading_style)
+		worksheet_f.write(2, 8, _('Kg. Facturados'), column_heading_style)
+		worksheet_f.write(2, 9, _('Precio Venta/Kilo'), column_heading_style)
+		worksheet_f.write(2, 10, _('Total Facturado'), column_heading_style)
+		worksheet_f.write(2, 11, _('Importe Adeudado'), column_heading_style)
 		row = 3
 		resumen_f = self.env['reporte.facturas.object'].search([])
 		for r in resumen_f:
 			worksheet_f.write(row, 0, r.invoice)
-			worksheet_f.write(row, 1, r.default_code)
-			worksheet_f.write(row, 2, r.product)
-			worksheet_f.write(row, 3, r.invoice_units)
-			worksheet_f.write(row, 4, r.sale_price_unit)
-			worksheet_f.write(row, 5, r.invoice_kgs)
-			worksheet_f.write(row, 6, r.sale_price_kgs)
-			worksheet_f.write(row, 7, r.invoice_total)
+			worksheet_f.write(row, 1, r.date_invoice)
+			worksheet_f.write(row, 2, r.state)
+			worksheet_f.write(row, 3, r.paid_in_cash)
+			worksheet_f.write(row, 4, r.default_code)
+			worksheet_f.write(row, 5, r.product)
+			worksheet_f.write(row, 6, r.invoice_units, miles_style)
+			worksheet_f.write(row, 7, r.sale_price_unit, currency_style)
+			worksheet_f.write(row, 8, r.invoice_kgs, miles_style)
+			worksheet_f.write(row, 9, r.sale_price_kgs, currency_style)
+			worksheet_f.write(row, 10, r.invoice_total, currency_style)
+			worksheet_f.write(row, 11, r.residual, currency_style)
 			row += 1
 
 		fp = StringIO()
@@ -336,6 +358,10 @@ class ReporteFacturasObject(models.Model):
 	_name = 'reporte.facturas.object'
 
 	invoice = fields.Char() #Factura
+	date_invoice = fields.Char()
+	state = fields.Char()
+	residual = fields.Float()
+	paid_in_cash = fields.Char()
 	default_code = fields.Char() #Codigo del Producto
 	product = fields.Char() #Producto
 	invoice_units = fields.Float() #Unidades Facturadas
