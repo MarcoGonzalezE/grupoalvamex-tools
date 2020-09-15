@@ -82,13 +82,10 @@ class ReporteVentas(models.TransientModel):
 			invoice_total)
 			SELECT * FROM sales_report_period(%s,%s)"""
 		query_fact = """INSERT INTO reporte_facturas_object
-			(invoice,date_invoice,state,residual,paid_in_cash,
-			default_code,
-			product,
+			(customer,invoice,date_invoice,state,residual,paid_in_cash,
+			category,
 			invoice_units,
-			sale_price_unit,
 			invoice_kgs,
-			sale_price_kgs,
 			invoice_total)
 			SELECT * FROM invoice_report_period(%s,%s)"""
 		params = [self.fecha_inicio, self.fecha_final]
@@ -142,14 +139,11 @@ class ReporteVentas(models.TransientModel):
 
 	def _sql_consulta_facturas_periodo(self):
 		query = """CREATE OR REPLACE FUNCTION public.invoice_report_period(x_fecha_inicio date, x_fecha_final date)
-			RETURNS TABLE(factura character varying, fecha character varying, estado TEXT, 
+			RETURNS TABLE(cliente character varying,factura character varying, fecha character varying, estado TEXT, 
 			    residual numeric, pagado_en_caja TEXT, 
-				sku character varying, 
-				producto character varying, 
-				unidades_facturadas numeric, 
-				precio_vta_unidad numeric,
+				categoria TEXT, 
+				unidades_facturadas numeric,				
 				kgs_facturados numeric, 
-				precio_vta_kg numeric,
 				facturado_total numeric) AS
 			$BODY$
 			DECLARE
@@ -157,38 +151,34 @@ class ReporteVentas(models.TransientModel):
 			BEGIN
 				CREATE TEMP TABLE CONSULTA_FACTURAS ON COMMIT DROP AS(
 				SELECT
+				CAST(rp.name as character varying) as CLIENTE,
 				ai.number as FACTURA,
 				CAST(ai.date_invoice as character varying) as Fecha,
 				CASE WHEN ai.state = 'paid' then 'PAGADO' else 'ABIERTA' END as Estado,
-				sum(ai.residual) as Adeudo,
+				ai.residual as Adeudo,
 				CASE When ai.paid_in_cash = 't' then 'PAGADO' else 'NO PAGADO' END as Pagado_En_Caja,
-				pt.default_code as SKU,
-				pt.name as PRODUCTO,
+				CASE When pc.name like 'PT HUEVO%' then 'PT HUEVO' else 'PT CERDO' end as CATEGORIA,
 				sum(ail.quantity) UNIDADES_FACTURADAS,
-				round((sum(ail.amount_subtotal) / sum(ail.quantity)),2) as PRECIO_VENTA_POR_UNIDAD,
-   				sum(cast(sol.kilograms as numeric)) as KILOGRAMOS_FACTURADOS,
-   				round((sum(ail.amount_subtotal) / NULLIF(sum(cast(sol.kilograms as numeric)),0)),2) as PRECIO_VENTA_POR_KILOGRAMO,
-   				round(sum(ail.amount_subtotal),2) as FACTURADO_TOTAL_$
-   				from account_invoice ai
-   				inner join account_invoice_line ail on ai.id = ail.invoice_id
-   				inner join product_product pp on pp.id = ail.product_id
-   				inner join product_template pt on pt.id = pp.product_tmpl_id
-   				inner join sale_order_line_invoice_rel rel on rel.invoice_line_id  = ail.id
-   				inner join sale_order_line sol on sol.id = rel.order_line_id
-   				where ai.date between x_fecha_inicio and x_fecha_final and (ai.state = 'open' or ai.state = 'paid')
-   				and pt.default_code like 'PT%'
-   				group by ai.number,ai.date_invoice, ai.state, ai.paid_in_cash, pt.default_code,pt.name
-   				order by pt.default_code
-   				);
-   				
-   				RETURN QUERY
-   				SELECT *
-   				FROM CONSULTA_FACTURAS q
-   				order by q.factura;
-
-   			END;
-   			$BODY$
-   			LANGUAGE plpgsql VOLATILE"""
+				sum(cast(sol.kilograms as numeric)) as KILOGRAMOS_FACTURADOS,
+				round(sum(ail.amount_subtotal),2) as FACTURADO_TOTAL_$
+				from account_invoice ai
+				inner join account_invoice_line ail on ai.id = ail.invoice_id
+				inner join product_product pp on pp.id = ail.product_id
+				inner join product_template pt on pt.id = pp.product_tmpl_id
+				inner join product_category pc on pc.id = pt.categ_id
+				inner join sale_order_line_invoice_rel rel on rel.invoice_line_id  = ail.id
+				inner join sale_order_line sol on sol.id = rel.order_line_id
+				inner join res_partner rp on rp.id = ai.partner_id
+				where ai.date between x_fecha_inicio and x_fecha_final and (ai.state = 'open' or ai.state = 'paid')
+				and pt.default_code like 'PT%'
+				group by rp.name,ai.number,ai.date_invoice, ai.state,7,ai.paid_in_cash,ai.residual
+				order by ai.date_invoice);
+				RETURN QUERY
+				SELECT * FROM CONSULTA_FACTURAS q 
+				order by q.factura;
+				END;
+				$BODY$
+				LANGUAGE plpgsql VOLATILE"""
 		self.env.cr.execute(query)
 
 	def render_xls(self):
@@ -265,33 +255,37 @@ class ReporteVentas(models.TransientModel):
 		#FACTURAS
 		worksheet_f = workbook.add_sheet('Reporte de Facturas')
 		worksheet_f.write(1, 3, 'FACTURAS'),easyxf('font:bold True;align: horiz center;')
-		worksheet_f.write(2, 0, _('Factura'), column_heading_style)
-		worksheet_f.write(2, 1, _('Fecha'), column_heading_style)
-		worksheet_f.write(2, 2, _('Estado'), column_heading_style)
-		worksheet_f.write(2, 3, _('Pagado en Caja'), column_heading_style)
-		worksheet_f.write(2, 4, _('Codigo'), column_heading_style)
-		worksheet_f.write(2, 5, _('Producto'), column_heading_style)
+		worksheet_f.write(2, 0, _('Cliente'), column_heading_style)
+		worksheet_f.write(2, 1, _('Factura'), column_heading_style)
+		worksheet_f.write(2, 2, _('Fecha'), column_heading_style)
+		worksheet_f.write(2, 3, _('Estado'), column_heading_style)
+		worksheet_f.write(2, 4, _('Pagado en Caja'), column_heading_style)
+		worksheet_f.write(2, 5, _('Categoria'), column_heading_style)
+		#worksheet_f.write(2, 5, _('Codigo'), column_heading_style)
+		#worksheet_f.write(2, 6, _('Producto'), column_heading_style)
 		worksheet_f.write(2, 6, _('Unidades Facturadas'), column_heading_style)
-		worksheet_f.write(2, 7, _('Precio Venta/Unidad'), column_heading_style)
-		worksheet_f.write(2, 8, _('Kg. Facturados'), column_heading_style)
-		worksheet_f.write(2, 9, _('Precio Venta/Kilo'), column_heading_style)
-		worksheet_f.write(2, 10, _('Total Facturado'), column_heading_style)
-		worksheet_f.write(2, 11, _('Importe Adeudado'), column_heading_style)
+		#worksheet_f.write(2, 7, _('Precio Venta/Unidad'), column_heading_style)
+		worksheet_f.write(2, 7, _('Kg. Facturados'), column_heading_style)
+		#worksheet_f.write(2, 9, _('Precio Venta/Kilo'), column_heading_style)
+		worksheet_f.write(2, 8, _('Total Facturado'), column_heading_style)
+		worksheet_f.write(2, 9, _('Importe Adeudado'), column_heading_style)
 		row = 3
 		resumen_f = self.env['reporte.facturas.object'].search([])
 		for r in resumen_f:
-			worksheet_f.write(row, 0, r.invoice)
-			worksheet_f.write(row, 1, r.date_invoice)
-			worksheet_f.write(row, 2, r.state)
-			worksheet_f.write(row, 3, r.paid_in_cash)
-			worksheet_f.write(row, 4, r.default_code)
-			worksheet_f.write(row, 5, r.product)
+			worksheet_f.write(row, 0, r.customer)
+			worksheet_f.write(row, 1, r.invoice)
+			worksheet_f.write(row, 2, r.date_invoice)
+			worksheet_f.write(row, 3, r.state)
+			worksheet_f.write(row, 4, r.paid_in_cash)
+			worksheet_f.write(row, 5, r.category)
+			#worksheet_f.write(row, 5, r.default_code)
+			#worksheet_f.write(row, 6, r.product)
 			worksheet_f.write(row, 6, r.invoice_units, miles_style)
-			worksheet_f.write(row, 7, r.sale_price_unit, currency_style)
-			worksheet_f.write(row, 8, r.invoice_kgs, miles_style)
-			worksheet_f.write(row, 9, r.sale_price_kgs, currency_style)
-			worksheet_f.write(row, 10, r.invoice_total, currency_style)
-			worksheet_f.write(row, 11, r.residual, currency_style)
+			#worksheet_f.write(row, 7, r.sale_price_unit, currency_style)
+			worksheet_f.write(row, 7, r.invoice_kgs, miles_style)
+			#worksheet_f.write(row, 9, r.sale_price_kgs, currency_style)
+			worksheet_f.write(row, 8, r.invoice_total, currency_style)
+			worksheet_f.write(row, 9, r.residual, currency_style)
 			row += 1
 
 		fp = StringIO()
@@ -357,17 +351,19 @@ class ReporteVentasObject(models.Model):
 class ReporteFacturasObject(models.Model):
 	_name = 'reporte.facturas.object'
 
+	customer = fields.Char()
 	invoice = fields.Char() #Factura
 	date_invoice = fields.Char()
 	state = fields.Char()
 	residual = fields.Float()
 	paid_in_cash = fields.Char()
-	default_code = fields.Char() #Codigo del Producto
-	product = fields.Char() #Producto
+	#default_code = fields.Char() #Codigo del Producto
+	#product = fields.Char() #Producto
+	category = fields.Char()
 	invoice_units = fields.Float() #Unidades Facturadas
-	sale_price_unit = fields.Float() #Precio de Venta por Unidad
+	#sale_price_unit = fields.Float() #Precio de Venta por Unidad
 	invoice_kgs = fields.Float() #Kilogramos Facturados
-	sale_price_kgs = fields.Float() #Precio de Venta por Kilo
+	#sale_price_kgs = fields.Float() #Precio de Venta por Kilo
 	invoice_total = fields.Float() #Total Facturado
 
 #TODO: Reporte de Ventas PDF
