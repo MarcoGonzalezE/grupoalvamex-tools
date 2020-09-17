@@ -160,7 +160,7 @@ class ReporteVentas(models.TransientModel):
 				CASE When pc.name like 'PT HUEVO%' then 'PT HUEVO' else 'PT CERDO' end as CATEGORIA,
 				sum(ail.quantity) UNIDADES_FACTURADAS,
 				sum(cast(sol.kilograms as numeric)) as KILOGRAMOS_FACTURADOS,
-				round(sum(ail.amount_subtotal),2) as FACTURADO_TOTAL_$
+				round(sum(ail.price_subtotal),2) as FACTURADO_TOTAL_$
 				from account_invoice ai
 				inner join account_invoice_line ail on ai.id = ail.invoice_id
 				inner join product_product pp on pp.id = ail.product_id
