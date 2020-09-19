@@ -34,6 +34,7 @@
         'data/contabilidad.data.xml',
         'views/contabilidad_pagos_manuales_views.xml',
         'views/contabilidad_pagos_manuales_templates.xml',
+        'views/almacen_general_view.xml'
         'views/produccion_costeo_view.xml',
         'views/fabricacion_descontruccion_asientos_contables.xml',
         'views/ventas_produccion_view.xml',

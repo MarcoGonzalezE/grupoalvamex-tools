@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+        <record id="purchase_order_form_inherited" model="ir.ui.view">
+            <field name="name">Almacen General Orden de Compra</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+                <field name="date_order" position="after" >
+                    <field name="received" string="Almacen General"/>
+                    <field name="received_date"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="notificacion_compra_almacen" model="mail.template">
+            <field name="name">Estado en Almacen General</field>
+            <field name="model_id" ref="model_purchase_order"></field>
+            <field name="email_from"><![CDATA[${object.company_id.name} <${object.company_id.email}>]]></field>
+            <field name="email_to">${object.email|safe}</field>
+            <field name="subject">Almacen General - Pedido ${object.name or object.id}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="built_in" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>El pedido de compra</b> ${object.name or object.id} se ha _estado_compra_</p>
+            ]]>
+            </field>
+        </record>
+	</data>
+</odoo>
