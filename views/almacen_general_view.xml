@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <field name="date_order" position="after" >
                     <field name="received" string="Almacen General"/>
-                    <field name="received_date"/>
+                    <field name="received_date" class="oe_read_only"/>
                 </field>
             </field>
         </record>
@@ -26,5 +26,13 @@
             ]]>
             </field>
         </record>
+
+        <!-- PARA AGREGAR AL REPORTE DEL PEDIDO DE COMPRA
+        <div t-if='o.received_date!=False'>
+            <table style="background-image:url(/grupoalvamex_tools/static/description/recibido.png);">
+                <td width="250" height="250" align="center"><p text-aling="center"><br/><br/><br/><br/><br/><h3><span t-field="o.received_date" style="color:red"/></h3></p></td>
+            </table>            
+        </div> -->
+
 	</data>
 </odoo>

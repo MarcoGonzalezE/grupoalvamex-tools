@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import fields, models, api, _
+from datetime import datetime, timedelta, date
 
 
 class PurchaseOrderAlmacenGeneral(models.Model):
@@ -12,7 +13,6 @@ class PurchaseOrderAlmacenGeneral(models.Model):
 
     @api.onchange('received')
     def notificacion(self):
-        print("ENTRADO A NOTIFICACION")
         compra = self.env['purchase.order'].search([('name', '=', self.name)])
         followers = self.env['mail.followers'].search(
             [('res_model', '=', 'purchase.order'), ('res_id', '=', compra.id)])
@@ -24,9 +24,13 @@ class PurchaseOrderAlmacenGeneral(models.Model):
                 values['model'] = 'purchase.order'
                 values['res_id'] = self.id  # OJO AQUI
                 if self.received == 'completed_received':
-                	values['body_html'] = values['body_html'].replace("_estado_compra_", "Recibido Completo")
+                    self.received_date = date.today()
+                    values['body_html'] = values['body_html'].replace("_estado_compra_", "Recibido Completo")
                 if self.received == 'partial_received':
-                	values['body_html'] = values['body_html'].replace("_estado_compra_", "Recibido Incompleto")
+                    self.received_date = False
+                    values['body_html'] = values['body_html'].replace("_estado_compra_", "Recibido Incompleto")
+                if self.received == 'pending':
+                    self.received_date = False
                 values['email_to'] = follow.partner_id.email
                 send_mail = self.env['mail.mail'].sudo().create(values)
                 send_mail.send()

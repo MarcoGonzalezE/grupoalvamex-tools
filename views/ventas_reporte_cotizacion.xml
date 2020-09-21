@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-    	<report id="cotizacion_ventas" string="Cotizacion" model="sale.order" report_type="qweb-pdf" name="grupoalvamex_tools.reporte_cotizacion" paperformat="account_check_printing_report_base.paperformat_check"/>
+    	<report id="cotizacion_ventas" string="Cotizacion" model="sale.order" report_type="qweb-pdf" name="grupoalvamex_tools.reporte_cotizacion" paperformat="grupoalvamex_tools.paperformat_check"/>
     	<template id="reporte_cotizacion">
     		<t t-call="report.html_container">
     			<t t-foreach="docs" t-as="o">
