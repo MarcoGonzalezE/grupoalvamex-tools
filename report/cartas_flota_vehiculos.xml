@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+<!-- FORMATO -->
+        <record id="paperformat_carta" model="report.paperformat">
+            <field name="name">US Bank Check</field>
+            <field name="default" eval="True"/>
+            <field name="format">custom</field>
+            <field name="page_height">297</field>
+            <field name="page_width">210</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">3</field>
+            <field name="margin_bottom">3</field>
+            <field name="margin_left">3</field>
+            <field name="margin_right">3</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">3</field>
+            <field name="dpi">80</field>
+        </record>
+
+<!-- CARTA RESPONSIVA -->
+        <report id="carta_flota_vehiculo" string="Carta Vehiculo Asignación/Devolución" model="fleet.vehicle" report_type="qweb-pdf"
+                name="grupoalvamex_tools.carta_flota_vehiculo" paperformat="grupoalvamex_tools.paperformat_carta"/>
+        <template id="carta_flota_vehiculo">
+            <t t-call="report.html_container">
+                <div class="page">
+                    <div style="padding-top:5mm;">
+                        <t t-foreach="docs" t-as="o">
+                            <table style="width:100%">
+                                <tr>
+                                    <td style="width: 40%">
+                                        <div>
+                                            <img src="/web/binary/company_logo" style="width: 100%;"/>
+                                        </div>
+                                    </td>
+                                    <td align="center" style="width 70%">
+                                        <p align="center">
+                                            <strong><font size="3">AVICAMPO S. de P.R de R.L. de C.V</font><br/>
+                                            KM3.CARRETERA LA BARCA-ATOTONILCO,<br/>
+                                            TELS/FAX 01(393)935-6578, 935-689<br/>
+                                            LA BARCA, JALISCO. C.P. 47910
+                                        </strong>
+                                    </p>
+                                </td>
+                                </tr>
+                            </table>
+                            <br/>
+                            <p align="right">La Barca, Jalisco;                                
+                                <t t-if="o.state_id.name == 'Disponible'">
+                                    <span t-field="o.assign_id.date_return"/><br/>
+                                    <strong>Devolución de Vehículo Utilitario</strong>
+                                </t>
+                                <t t-if="o.state_id.name == 'Asignado'">
+                                    <span t-field="o.assign_id.date_assign"/><br/>
+                                    <strong>Asignación de Vehículo Utilitario</strong>
+                                </t>
+                            </p>
+                            <p><strong>Alcance: <span t-field="o.assign_id.driver_job"/></strong></p>
+                            <p align="justify">El propósito del presente documento es establecer las Políticas y Lineamientos para la asignación de vehículo utilitario que brinda la empresa Grupo Alvamex como herramienta de trabajo para sus colaboradores, donde se hace constar que está herramienta es para cubrir las necesidades que requiera la operación quedando como responsable absoluto del resguardo de esta unidad <strong><span t-field="o.assign_id.driver_id"/></strong> con puesto de <span t-field="o.assign_id.driver_job"/> así mismo deberá darle el adecuado mantenimiento, cuidado y uso de la misma.</p>
+                            <br/>
+                            <p><strong>Mantenimiento y revisión de Unidad (diariamente)</strong></p>
+                            <p>
+                                -   Nivel de aceite de motor<br/>
+                                -   Nivel de agua<br/>
+                                -   Aire de neumáticos y desgaste de ellos<br/>
+                                -   Frenos<br/>
+                                -   Baterías<br/>
+                                -   Limpiabrisas<br/>
+                                -   Luz general<br/>
+                                -   Fugas de aire<br/>
+                            </p>
+                            <br/>
+                            <p align="center">
+                                Datos Generales<br/><br/>
+                                <span t-field="o.model_id.brand_id"/> <span t-field="o.license_plate"/><br/>
+                                Número económico: <span t-field="o.model_id.name"/><br/>
+                                <span t-field="o.assign_id.driver_job"/>
+                            </p>                            
+                            <t t-if="o.state_id.name == 'Asignado'">
+                                <br/>
+                                <p align="justify">En caso de robo, extravío o pérdida total me comprometo a pagar el costo total de la Unidad, y en caso de daño atribuible al mal uso de la Unidad.</p>
+                            </t>
+                            <t t-if="o.state_id.name == 'Disponible'">
+                                    <p align="justify">_________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________</p><br/>
+                                </t>
+                            <p align="justify">Habiendo leído y estando de acuerdo en el contenido y consecuencias de la presente carta responsiva de asignación de la Unidad, para fines laborales la firmo en la ciudad de La Barca, Jalisco.</p>
+                            <br/>
+                            <p align="center">
+                                Recibo Vehículo Utilitario
+                                <br/>
+                                <br/>
+                                <br/>
+                                _____________________________________<br/>
+                                <strong><span t-field="o.assign_id.driver_id"/></strong>
+                            </p>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>

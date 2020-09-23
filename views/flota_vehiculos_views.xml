@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+		<record id="fleet_vehicle_form_view" model="ir.ui.view">
+			<field name="name">fleet.vehicle.form</field>
+			<field name="model">fleet.vehicle</field>
+			<field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+			<field name="arch" type="xml">
+				<xpath expr="//header" position="inside">
+					<button name="assign_vehicle" type="object" class="btn-primary" string="Asignar" attrs="{'invisible':[('driver_id','=', True)]}"/>
+					<button name="return_vehicle" type="object" class="btn-primary" string="Devolucion" attrs="{'invisible':[('driver_id','=', False)]}"/>
+				</xpath>
+				<field name="driver_id" position="after">
+					<field name="date_assign"/>
+					<field name="assign_id" invisible="1"/>
+				</field>
+				<xpath expr="//sheet" position="inside">
+					<group string="Asignaciones">
+						<field name="vehicle_assign">
+							<tree string="Asignaciones" editable="top">
+								<field name="driver_id"/>
+								<field name="driver_job"/>
+								<field name="date_assign"/>
+								<field name="date_return"/>
+								<field name="note"/>
+							</tree>
+						</field>
+					</group>
+				</xpath>
+			</field>
+		</record>
+
+		<record id="fleet_vehicle_assignments_view_form" model="ir.ui.view">
+			<field name="name">fleet.vehicle.assignments.form</field>
+			<field name="model">fleet.vehicle.assignments</field>
+			<field name="arch" type="xml">
+				<form>
+					<group>
+						<field name="vehicle_id" readonly="1"/>
+						<field name="driver_id"/>
+						<field name="driver_job"/>
+						<field name="date_assign"/>
+						<field name="note"/>
+					</group>
+					<footer>
+						<button name="assign_vehicle" type="object" class="btn-primary" string="Asignar"/>
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		<record id="fleet_vehicle_return_view_form" model="ir.ui.view">
+			<field name="name">fleet.vehicle.return.form</field>
+			<field name="model">fleet.vehicle.assignments</field>
+			<field name="arch" type="xml">
+				<form>
+					<group>
+						<field name="vehicle_id" readonly="1"/>
+						<field name="driver_id" readonly="1"/>
+						<field name="driver_job" readonly="1"/>
+						<field name="date_assign" readonly="1"/>
+						<field name="date_return"/>
+						<field name="note"/>
+					</group>
+					<footer>
+						<button name="save" type="object" class="btn-primary" string="Guardar"/>
+					</footer>
+				</form>
+			</field>
+		</record>
+
+	</data>
+</odoo>

@@ -3,3 +3,4 @@ access_contabilidad_pagos_cheque,contabilidad.pagos.cheque,model_contabilidad_pa
 access_contabilidad_pagos_transferencia,contabilidad.pagos.transferencia,model_contabilidad_pagos_transferencia,,1,1,1,1
 access_fabricacion_asientos_contables,mrp.wizard.contabilidad,model_mrp_wizard_contabilidad,,1,1,1,1
 access_ventas_reporte_object,reporte.ventas.object,model_reporte_ventas_object,,1,1,1,1
+access_fleet_vehicle_assignments,Asignaciones de Vehiculos,model_fleet_vehicle_assignments,,1,1,1,1
