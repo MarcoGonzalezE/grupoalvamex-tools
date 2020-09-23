@@ -82,11 +82,11 @@ class ReporteVentas(models.TransientModel):
 			invoice_total)
 			SELECT * FROM sales_report_period(%s,%s)"""
 		query_fact = """INSERT INTO reporte_facturas_object
-			(customer,invoice,date_invoice,state,residual,paid_in_cash,
+			(customer,invoice,date_invoice,month,state,residual,paid_in_cash,
 			category,
 			invoice_units,
 			invoice_kgs,
-			invoice_total)
+			invoice_total, amount_paid)
 			SELECT * FROM invoice_report_period(%s,%s)"""
 		params = [self.fecha_inicio, self.fecha_final]
 		self.env.cr.execute(query, tuple(params))
@@ -139,12 +139,14 @@ class ReporteVentas(models.TransientModel):
 
 	def _sql_consulta_facturas_periodo(self):
 		query = """CREATE OR REPLACE FUNCTION public.invoice_report_period(x_fecha_inicio date, x_fecha_final date)
-			RETURNS TABLE(cliente character varying,factura character varying, fecha character varying, estado TEXT, 
+			RETURNS TABLE(cliente character varying,factura character varying, fecha character varying,mes float,
+			    estado TEXT, 
 			    residual numeric, pagado_en_caja TEXT, 
 				categoria TEXT, 
 				unidades_facturadas numeric,				
 				kgs_facturados numeric, 
-				facturado_total numeric) AS
+				facturado_total numeric,
+				importe_pagado numeric) AS
 			$BODY$
 			DECLARE
 
@@ -154,6 +156,7 @@ class ReporteVentas(models.TransientModel):
 				CAST(rp.name as character varying) as CLIENTE,
 				ai.number as FACTURA,
 				CAST(ai.date_invoice as character varying) as Fecha,
+				EXTRACT(MONTH FROM ai.date_invoice) as Mes,
 				CASE WHEN ai.state = 'paid' then 'PAGADO' else 'ABIERTA' END as Estado,
 				ai.residual as Adeudo,
 				CASE When ai.paid_in_cash = 't' then 'PAGADO' else 'NO PAGADO' END as Pagado_En_Caja,
@@ -161,7 +164,9 @@ class ReporteVentas(models.TransientModel):
 				CASE When pc.name like 'PT CERDO%' then 'PT CERDO' else 'PT VARIOS' end end as CATEGORIA,
 				sum(ail.quantity) UNIDADES_FACTURADAS,
 				sum(cast(sol.kilograms as numeric)) as KILOGRAMOS_FACTURADOS,
-				round(sum(ail.price_subtotal),2) as FACTURADO_TOTAL_$
+				round(sum(ail.price_subtotal),2) as FACTURADO_TOTAL_$,
+				round(sum(ail.price_subtotal),2) - ai.residual as Importe_Pagado
+				
 				from account_invoice ai
 				inner join account_invoice_line ail on ai.id = ail.invoice_id
 				inner join product_product pp on pp.id = ail.product_id
@@ -172,7 +177,7 @@ class ReporteVentas(models.TransientModel):
 				inner join res_partner rp on rp.id = ai.partner_id
 				where ai.date between x_fecha_inicio and x_fecha_final and (ai.state = 'open' or ai.state = 'paid')
 				and pt.default_code like 'PT%'
-				group by rp.name,ai.number,ai.date_invoice, ai.state,7,ai.paid_in_cash,ai.residual
+				group by rp.name,ai.number,ai.date_invoice, ai.state,8,ai.paid_in_cash,ai.residual
 				order by ai.date_invoice);
 				RETURN QUERY
 				SELECT * FROM CONSULTA_FACTURAS q 
@@ -255,38 +260,42 @@ class ReporteVentas(models.TransientModel):
 
 		#FACTURAS
 		worksheet_f = workbook.add_sheet('Reporte de Facturas')
-		worksheet_f.write(1, 3, 'FACTURAS'),easyxf('font:bold True;align: horiz center;')
-		worksheet_f.write(2, 0, _('Cliente'), column_heading_style)
-		worksheet_f.write(2, 1, _('Factura'), column_heading_style)
-		worksheet_f.write(2, 2, _('Fecha'), column_heading_style)
-		worksheet_f.write(2, 3, _('Estado'), column_heading_style)
-		worksheet_f.write(2, 4, _('Pagado en Caja'), column_heading_style)
-		worksheet_f.write(2, 5, _('Categoria'), column_heading_style)
+		#worksheet_f.write(1, 3, 'FACTURAS'),easyxf('font:bold True;align: horiz center;')
+		worksheet_f.write(0, 0, _('Cliente'), column_heading_style)
+		worksheet_f.write(0, 1, _('Factura'), column_heading_style)
+		worksheet_f.write(0, 2, _('Mes'), column_heading_style)
+		worksheet_f.write(0, 3, _('Fecha'), column_heading_style)
+		worksheet_f.write(0, 4, _('Estado'), column_heading_style)
+		worksheet_f.write(0, 5, _('Pagado en Caja'), column_heading_style)
+		worksheet_f.write(0, 6, _('Categoria'), column_heading_style)
 		#worksheet_f.write(2, 5, _('Codigo'), column_heading_style)
 		#worksheet_f.write(2, 6, _('Producto'), column_heading_style)
-		worksheet_f.write(2, 6, _('Unidades Facturadas'), column_heading_style)
+		worksheet_f.write(0, 7, _('Unidades Facturadas'), column_heading_style)
 		#worksheet_f.write(2, 7, _('Precio Venta/Unidad'), column_heading_style)
-		worksheet_f.write(2, 7, _('Kg. Facturados'), column_heading_style)
+		worksheet_f.write(0, 8, _('Kg. Facturados'), column_heading_style)
 		#worksheet_f.write(2, 9, _('Precio Venta/Kilo'), column_heading_style)
-		worksheet_f.write(2, 8, _('Total Facturado'), column_heading_style)
-		worksheet_f.write(2, 9, _('Importe Adeudado'), column_heading_style)
-		row = 3
+		worksheet_f.write(0, 9, _('Total Facturado'), column_heading_style)
+		worksheet_f.write(0, 10, _('Importe Adeudado'), column_heading_style)
+		worksheet_f.write(0, 11, _('Importe Pagado'), column_heading_style)
+		row = 1
 		resumen_f = self.env['reporte.facturas.object'].search([])
 		for r in resumen_f:
 			worksheet_f.write(row, 0, r.customer)
 			worksheet_f.write(row, 1, r.invoice)
-			worksheet_f.write(row, 2, r.date_invoice)
-			worksheet_f.write(row, 3, r.state)
-			worksheet_f.write(row, 4, r.paid_in_cash)
-			worksheet_f.write(row, 5, r.category)
+			worksheet_f.write(row, 2, r.month)
+			worksheet_f.write(row, 3, r.date_invoice)
+			worksheet_f.write(row, 4, r.state)
+			worksheet_f.write(row, 5, r.paid_in_cash)
+			worksheet_f.write(row, 6, r.category)
 			#worksheet_f.write(row, 5, r.default_code)
 			#worksheet_f.write(row, 6, r.product)
-			worksheet_f.write(row, 6, r.invoice_units, miles_style)
+			worksheet_f.write(row, 7, r.invoice_units, miles_style)
 			#worksheet_f.write(row, 7, r.sale_price_unit, currency_style)
-			worksheet_f.write(row, 7, r.invoice_kgs, miles_style)
+			worksheet_f.write(row, 8, r.invoice_kgs, miles_style)
 			#worksheet_f.write(row, 9, r.sale_price_kgs, currency_style)
-			worksheet_f.write(row, 8, r.invoice_total, currency_style)
-			worksheet_f.write(row, 9, r.residual, currency_style)
+			worksheet_f.write(row, 9, r.invoice_total, currency_style)
+			worksheet_f.write(row, 10, r.residual, currency_style)
+			worksheet_f.write(row, 11, r.amount_paid, currency_style)
 			row += 1
 
 		fp = StringIO()
@@ -355,6 +364,7 @@ class ReporteFacturasObject(models.Model):
 	customer = fields.Char()
 	invoice = fields.Char() #Factura
 	date_invoice = fields.Char()
+	month = fields.Float()
 	state = fields.Char()
 	residual = fields.Float()
 	paid_in_cash = fields.Char()
@@ -366,6 +376,7 @@ class ReporteFacturasObject(models.Model):
 	invoice_kgs = fields.Float() #Kilogramos Facturados
 	#sale_price_kgs = fields.Float() #Precio de Venta por Kilo
 	invoice_total = fields.Float() #Total Facturado
+	amount_paid = fields.Float()
 
 #TODO: Reporte de Ventas PDF
 class ReporteVentasPDF(models.AbstractModel):
