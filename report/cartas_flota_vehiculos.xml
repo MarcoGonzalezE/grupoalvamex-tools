@@ -20,8 +20,8 @@
 
 <!-- CARTA RESPONSIVA -->
         <report id="carta_flota_vehiculo" string="Carta Vehiculo Asignación/Devolución" model="fleet.vehicle" report_type="qweb-pdf"
-                name="grupoalvamex_tools.carta_flota_vehiculo" paperformat="grupoalvamex_tools.paperformat_carta"/>
-        <template id="carta_flota_vehiculo">
+                name="grupoalvamex_tools.carta_flota_vehiculo_document" paperformat="grupoalvamex_tools.paperformat_carta"/>
+        <template id="carta_flota_vehiculo_document">
             <t t-call="report.html_container">
                 <div class="page">
                     <div style="padding-top:5mm;">
