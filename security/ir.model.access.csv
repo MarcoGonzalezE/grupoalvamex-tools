@@ -10,3 +10,9 @@ access_inventario_entradas,Entrada de Inventario,model_inventario_entradas,plane
 access_ventas_produccion_gerencia,Ordenes de Planeacion,model_ventas_produccion,planeacion_gerencia,1,1,1,1
 access_ventas_produccion_inventario_gerencia,Inventario de Produccion,model_ventas_produccion_inventario,planeacion_gerencia,1,1,1,1
 access_inventario_entradas_gerencia,Entrada de Inventario,model_inventario_entradas,planeacion_gerencia,1,1,1,1
+access_ventas_produccion_inventario,Inventario de Produccion,model_ventas_produccion_inventario,planeacion_pt,1,1,1,0
+access_mrp_production,Fabricacion,model_mrp_production,planeacion_pt,1,0,0,0
+access_mrp_production,Fabricacion,model_mrp_production,planeacion_gerencia,1,0,0,0
+access_mrp_production,Fabricacion,model_mrp_production,planeacion_produccion,1,0,0,0
+access_inventario_devoluciones,Devoluciones,model_inventario_devoluciones,planeacion_pt,1,0,0,0
+access_inventario_devoluciones,Devoluciones,model_inventario_devoluciones,planeacion_produccion,1,0,0,0

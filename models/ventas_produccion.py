@@ -443,6 +443,7 @@ class VentasProduccionInvetario(models.Model):
         return{
             'name': "Registrar Entrada",
             'type': 'ir.actions.act_window',
+            'view_id': self.env.ref('grupoalvamex_tools.inventario_entrada_view_form').id,
             'view_type': 'form',
             'view_mode': 'form',
             'view_name': 'form',
@@ -472,15 +473,21 @@ class VentasProduccionInvetario(models.Model):
             venta_lin = self.env['sale.order.line'].search([('order_id','=', venta_or.id)])
             #for lineas in venta_lin:
 
-#ENTRADAS DE INVENTIRIO
+#ENTRADAS DE INVENTARIO
 class InventarioEntradas(models.Model):
     _name = 'inventario.entradas'
+    _inherit = ['mail.thread']
 
-    entrada_id = fields.Many2one('ventas.produccion.inventario', string="Entrada")
-    entrada_stock = fields.Float(string="Cantidad")
-    fecha_entrada = fields.Date(string="Fecha")
-    lote = fields.Char(string="Lote")
-    nota = fields.Text(string="Nota")
+    entrada_id = fields.Many2one('ventas.produccion.inventario', string="Entrada", track_visibility='onchange')
+    entrada_stock = fields.Float(string="Cantidad", track_visibility='onchange')
+    fecha_entrada = fields.Date(string="Fecha", track_visibility='onchange')
+    lote = fields.Char(string="Lote", track_visibility='onchange')
+    nota = fields.Text(string="Nota", track_visibility='onchange')
+    produccion_id = fields.Many2one('mrp.production', string="Orden de Produccion", track_visibility='onchange')
+    produccido = fields.Float(string="Produccido", track_visibility='onchange')
+    estado = fields.Selection([('produccion', 'En Produccion'),
+                               ('recibido', 'Recibido'),
+                               ('cancelado', 'Cancelado')], default='produccion', string="Estado", track_visibility='onchange')
 
     @api.model
     def create(self, values):
@@ -490,6 +497,81 @@ class InventarioEntradas(models.Model):
     def save(self):
         """ Used in a wizard-like form view, manual save button when in edit mode """
         return True
+
+    @api.multi
+    def name_get(self):
+        res = super(InventarioEntradas, self).name_get()
+        result = []
+        for element in res:
+            entrada = element[0]
+            code = self.browse(entrada).entrada_id.name.name
+            desc = self.browse(entrada).fecha_entrada
+            name = code and '[%s] %s' % (code, desc) or '%s' % desc
+            result.append((entrada, name))
+        return result
+
+    @api.multi
+    def recibir(self):
+        for r in self:
+            r.estado = 'recibido'
+
+
+#PRODUCCION - PRODUCTO TERMINADO
+# class ProduccionProductoTerminado(models.Model):
+#     _name = 'produccion.producto.terminado'
+
+#     produccion_id = fields.Many2one('mrp.production', string="Orden de Produccion")
+#     produccido = fields.Float(string="Produccido")
+#     fecha = fields.Datetime(string="Fecha")
+#     producto = fields.Many2one('ventas.produccion.inventario', string="Producto")
+#     recibido_pt = fields.Float(string="Recibido")
+
+#TRANSACCION FABRICACION A PLANEACION
+class FabricacionPlaneacion(models.TransientModel):
+    _name = 'fabricacion.planeacion'
+
+    @api.model
+    def default_get(self, default_fields):
+        res = super(FabricacionPlaneacion, self).default_get(default_fields)
+        fabricacion_id = self._context.get('active_ids')
+        fabricacion = self.env['mrp.production'].browse(fabricacion_id)
+        enviado = self.env['inventario.entradas'].search([('produccion_id','=',fabricacion.id)])
+        if enviado:
+            raise ValidationError(
+                _('Ya ha sido enviado a Planeacion'))
+        return res
+
+    @api.multi
+    def planeacion(self):
+        fabricacion = self.env['mrp.production'].browse(self._context.get('active_ids'))
+        producto = self.env['ventas.produccion.inventario'].search([('name','=',fabricacion.product_id.id),('sucursal','=',1)], limit=1)
+        planeacion = self.env['inventario.entradas'].create({
+            'produccion_id': fabricacion[0].id,
+            'produccido': fabricacion[0].product_qty,
+            'fecha': fabricacion[0].date_planned_start,
+            'entrada_id': producto.id,
+        })
+
+        return{
+            'name': 'Planeacion',
+            'view_id': self.env.ref('grupoalvamex_tools.inventario_entrada_fabricacion_view_form').id,
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'inventario.entradas',
+            'res_id':   planeacion.id,
+            'type': 'ir.actions.act_window'
+        }
+
+
+    @api.model
+    def validate(self, reports):
+        enviado = self.env
+        if len(reports.mapped('planeacion_id')):
+            raise ValidationError(
+                 _('El pedido ya tiene asignado una Orden de Planeacion \n Cancelé la planeacion activa para generar una nueva'))
+        if len(reports.mapped('partner_id')) > 1:
+            raise ValidationError(
+                _('Todos los pedidos deben de tener el mismo CLIENTE'))
 
 #SALIDAS INTERNAS
 class InventarioDevoluciones(models.Model):

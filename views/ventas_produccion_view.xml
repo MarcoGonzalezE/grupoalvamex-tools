@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        
-        <!--- Action-->
+<!-- ORDENES DE PLANEACION -->
         <record id="ventas_produccion_action" model="ir.actions.act_window">
             <field name="name">Planeacion</field>
             <field name="type">ir.actions.act_window</field>
@@ -10,7 +9,6 @@
             <field name="view_mode">tree,form,graph</field>
         </record>
 
-        <!--- Tree -->
         <record id="boton_produccion_tree" model="ir.ui.view">
             <field name="name">ventas.produccion.tree.view</field>
             <field name="model">ventas.produccion</field>
@@ -26,7 +24,6 @@
             </field>
         </record>
 
-        <!--- Form -->
         <record id="ventas_produccion_form" model="ir.ui.view">
             <field name="name">Planeacion de Produccion</field>
             <field name="model">ventas.produccion</field>
@@ -97,7 +94,6 @@
             </field>
         </record>
 
-        <!-- Graph -->
         <record id="ventas_produccion_graph" model="ir.ui.view">
             <field name="name">Grafica Planeacion</field>
             <field name="model">ventas.produccion</field>
@@ -107,7 +103,6 @@
                 </graph>
             </field>
         </record>
-
 <!---ACCION PARA ENVIAR A PLANEACION-->
         <record id="action_venta_produccion_form" model="ir.ui.view">
             <field name="name">Planear Produccion</field>
@@ -122,16 +117,7 @@
                 </form>
             </field>
         </record>
-        <act_window id="action_venta_planeacion_produccion" key2="client_action_multi" name="Crear orden de Planeacion" res_model="ventas.produccion.planeacion" src_model="sale.order" target="new" view_mode="form"/>
-        
-        <!--Menus-->
-        <menuitem name="Planeacion" id="menu_planeacion" sequence="25"
-                  web_icon="grupoalvamex_tools,static/description/planeacion.png"/>
-        <menuitem name="Planeacion" id="menu_produccion_planeacion" parent="menu_planeacion" action="ventas_produccion_action"
-                  sequence="650"/>
-
-                
-
+        <act_window id="action_venta_planeacion_produccion" key2="client_action_multi" name="Crear orden de Planeacion" res_model="ventas.produccion.planeacion" src_model="sale.order" target="new" view_mode="form"/>        
 <!-- Inventario Produccion -->
         <record id="ventas_produccion_inventario_view_form" model="ir.ui.view">
             <field name="name">ventas.produccion.inventario.form</field>
@@ -198,6 +184,7 @@
                                             <field name="fecha_entrada" readonly="1"/>
                                             <field name="entrada_stock" readonly="1" sum="Entradas"/>
                                             <field name="lote" readonly="1"/>
+                                            <field name="estado" readonly="1"/>
                                             <field name="nota" readonly="1"/>
                                         </tree>
                                     </field>
@@ -303,10 +290,6 @@
                 <p>No se encontro inventario</p>
             </field>
         </record>
-
-        <menuitem name="Inventario" id="menu_inventario" parent="menu_planeacion" action="ventas_produccion_inventario_action" sequence="660"/>
-        <menuitem name="Inventario Info" id="menu_pedidopt" parent="menu_planeacion" action="ventas_produccion_pedidopt_action" sequence="661"/>
-
 <!-- Sucursales -->
         <record id="sucursales_planeacion_view_tree" model="ir.ui.view">
             <field name="name">Centros de Distribución</field>
@@ -355,52 +338,128 @@
                 <p>No se ha registrado ningun Centro de distribución</p>
             </field>
         </record>
-
-        <menuitem name="Centros de Distribución" id="menu_cedis" parent="menu_planeacion" action="sucursales_planeacion_action" sequence="700" groups="grupoalvamex_tools.planeacion_gerencia"/>
-
 <!-- Inventario Entrada -->
         <record id="inventario_entrada_view_form" model="ir.ui.view">
-          <field name="name">inventario.entrada.form.view</field>
-          <field name="model">inventario.entradas</field>
-          <field name="arch" type="xml">
-            <form>
-                <group>
-                    <field name="entrada_id" readonly="True"/>
-                    <field name="entrada_stock"/>
-                    <field name="lote"/>
-                    <field name="fecha_entrada"/>
-                </group>
-                <group>
-                    <field name="nota"/>
-                </group>
-                <footer>
-                    <button string="Registrar" class="oe_highlight oe_edit_only" name="save" type="object"/>
-                    <button string="Cancelar" class="oe_highlight oe_edit_only" special="cancel"/>
-                </footer>
-            </form>
-          </field>
-      </record>
-
-    <record id="inventario_entrada_action" model="ir.actions.act_window">
+            <field name="name">inventario.entrada.form.view</field>
+            <field name="model">inventario.entradas</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="entrada_id" readonly="True"/>
+                        <field name="entrada_stock"/>
+                        <field name="lote"/>
+                        <field name="fecha_entrada"/>
+                    </group>
+                    <group>
+                        <field name="nota"/>
+                    </group>
+                    <footer>
+                        <button string="Registrar" class="oe_highlight oe_edit_only" name="save" type="object"/>
+                        <button string="Cancelar" class="oe_highlight oe_edit_only" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        
+        <!-- BOTON EN PRODUCTO -->
+        <record id="inventario_entrada_action" model="ir.actions.act_window">
             <field name="name">Entradas</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">inventario.entradas</field>
             <field name="view_mode">tree</field>
-    </record>
+        </record>
 
-    <record id="inventario_entrada_tree" model="ir.ui.view">
-        <field name="name">inventario.entradas.tree.view</field>
-        <field name="model">inventario.entradas</field>
-        <field name="arch" type="xml">
-            <tree>                
-                <field name="fecha_entrada"/>
-                <field name="entrada_stock" sum="Total Entradas"/>
-                <field name="lote"/>
-                <field name="nota"/>
-            </tree>
-        </field>
-    </record>
+        <record id="tree_inventario_entrada_action_view" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="res_model">inventario.entradas</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="inventario_entrada_tree"/>
+            <field name="act_window_id" ref="inventario_entrada_action"/>
+        </record>
 
+        <record id="inventario_entrada_tree" model="ir.ui.view">
+            <field name="name">inventario.entradas.tree.view</field>
+            <field name="model">inventario.entradas</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="fecha_entrada"/>
+                    <field name="entrada_stock" sum="Total Entradas"/>
+                    <field name="lote"/>
+                    <field name="nota"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- REGISTRO DE FABRICACION -->
+        <record id="inventario_entrada_fabricacion_view_form" model="ir.ui.view">
+            <field name="name">inventario.entrada.fabricacion.form.view</field>
+            <field name="model">inventario.entradas</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button string="Recibido" type="object" class="oe_highlight" name="recibir" attrs="{'invisible':['|',('estado','=','cancelado'),('estado','=','recibido')]}" groups="grupoalvamex_tools.planeacion_pt"/><b/>
+                        <field name="estado" widget="statusbar"/>                        
+                    </header>
+                    <sheet>                        
+                        <group>
+                            <group>                            
+                                <field name="entrada_id" readonly="True" string="Producto" domain="[('sucursal','=',1)]"/>
+                                <field name="fecha_entrada" attrs="{'readonly':[('estado','=','recibido')]}"/>
+                                <field name="lote" attrs="{'readonly':[('estado','=','recibido')]}"/>
+                            </group>
+                            <group>
+                                <field name="produccion_id" readonly="True"/>
+                                <field name="produccido" readonly="True" groups="grupoalvamex_tools.planeacion_produccion"/>
+                                <field name="entrada_stock" string="Recibido" attrs="{'readonly':[('estado','=','recibido')]}" groups="grupoalvamex_tools.planeacion_pt"/>
+                            </group>
+                        </group>
+                        <field name="nota" attrs="{'readonly':[('estado','=','recibido')]}" placeholder="Nota"/>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers" groups="grupoalvamex_tools.group_user"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>                
+            </field>
+        </record>
+
+        <record id="inventario_entrada_fabricacion_view_tree" model="ir.ui.view">
+            <field name="name">Planeacion Fabricacion</field>
+            <field name="model">inventario.entradas</field>
+            <field name="arch" type="xml">
+                <tree string="Planeacion Fabricacion" colors="navy:estado =='recibido';" default_order='fecha_entrada desc'>
+                    <field name="entrada_id"/>
+                    <field name="fecha_entrada"/>
+                    <field name="produccido" groups="grupoalvamex_tools.planeacion_produccion"/>
+                    <field name="entrada_stock" groups="grupoalvamex_tools.planeacion_pt"/>
+                    <field name="lote"/>
+                    <field name="estado" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="inventario_entrada_fabricacion_action" model="ir.actions.act_window">
+            <field name="name">Entradas</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">inventario.entradas</field>
+            <field name="view_mode">tree,form,graph</field>
+        </record>
+
+        <record id="tree_inventario_entrada_fabricacion_action_view" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="res_model">inventario.entradas</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="inventario_entrada_fabricacion_view_tree"/>
+            <field name="act_window_id" ref="inventario_entrada_fabricacion_action"/>
+        </record>
+
+        <record id="form_inventario_entrada_fabricacion_action_view" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="res_model">inventario.entradas</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="inventario_entrada_fabricacion_view_form"/>
+            <field name="act_window_id" ref="inventario_entrada_fabricacion_action"/>
+        </record>
 <!-- Inventario Salidas -->
     <record id="inventario_salidas_action" model="ir.actions.act_window">
         <field name="name">Salidas</field>
@@ -408,7 +467,6 @@
         <field name="res_model">sale.order.line</field>
         <field name="view_mode">tree</field>
     </record>
-
 <!-- Inventario Devoluciones -->
     <record id="inventario_devolicion_view_form" model="ir.ui.view">
           <field name="name">inventario.devolucion.form.view</field>
@@ -459,7 +517,6 @@
             </tree>
         </field>
     </record>
-
 <!-- Vendedores -->
         <record id="ventas_vendedores_action" model="ir.actions.act_window">
             <field name="name">Agregar Vendedores</field>
@@ -519,9 +576,7 @@
                     </sheet>
                 </form>
             </field>
-        </record>
-
-        <menuitem name="Agregar Vendedor" id="agregar_vendedor" parent="sales_team.menu_base_partner" action="ventas_vendedores_action" sequence="101"/>
+        </record>        
 
         <record id="sale_order_inherit" model="ir.ui.view">
             <field name="name">sale.order.inherit</field>
@@ -548,6 +603,72 @@
                 </field>
             </field>
         </record>
+<!-- ACCION ENVIAR PLANEACION - FABRICACION -->
+        <record id="action_fabricacion_planeacion" model="ir.ui.view">
+            <field name="name">Planeacion Fabricacion</field>
+            <field name="model">fabricacion.planeacion</field>
+            <field name="arch" type="xml">
+                <form string="Enviar a Planeacion">
+                    <separator colspan="4" string="¿Crear registro en planeacion?"/>
+                    <footer>
+                        <button name="planeacion" string="Confirmar" type="object"/>
+                        <button class="oe_link" special="cancel" string="Cancelar"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <act_window id="action_fabricacion_planeacion_produccion" key2="client_action_multi" name="Registrar en Planeacion" res_model="fabricacion.planeacion" src_model="mrp.production" target="new" view_mode="form"/>
+<!-- RESGISTRO DE PLANEACION - FABRICACION -->
+        <!-- <record id="fabricacion_planeacion_form" model="ir.ui.view">
+            <field name="name">Planeacion Fabricacion</field>
+            <field name="model">produccion.producto.terminado</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="produccion_id"/>
+                                <field name="fecha"/>
+                            </group>
+                            <group>
+                                <field name="producto"/>
+                                <field name="produccido"/>
+                                <field name="recibido_pt"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="fabricacion_planeacion_tree" model="ir.ui.view">
+            <field name="name">Planeacion Fabricacion</field>
+            <field name="model">produccion.producto.terminado</field>
+            <field name="arch" type="xml">
+                <tree string="Planeacion Fabricacion">
+                    <field name="producto"/>
+                    <field name="fecha"/>
+                    <field name="produccido"/>
+                    <field name="recibido_pt"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="fabricacion_planeacion_action" model="ir.actions.act_window">
+            <field name="name">Planeacion Fabricacion</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">produccion.producto.terminado</field>
+            <field name="view_mode">tree,form,graph</field>
+        </record> -->        
+<!-- MENU -->
+        <menuitem name="Planeacion" id="menu_planeacion" sequence="25" web_icon="grupoalvamex_tools,static/description/planeacion.png"/>
+        <menuitem name="Planeacion" id="menu_produccion_planeacion" parent="menu_planeacion" action="ventas_produccion_action" sequence="10" groups="grupoalvamex_tools.planeacion_ventas"/>
+        <menuitem name="Inventario" id="menu_inventario" parent="menu_planeacion" action="ventas_produccion_inventario_action" sequence="20"/>
+        <menuitem name="Inventario Info" id="menu_pedidopt" parent="menu_planeacion" action="ventas_produccion_pedidopt_action" sequence="30"/>
+        <menuitem name="Produccion" id="menu_produccion" parent="menu_planeacion" action="inventario_entrada_fabricacion_action" sequence="40"/>
+        <menuitem name="Centros de Distribución" id="menu_cedis" parent="menu_planeacion" action="sucursales_planeacion_action" sequence="50" groups="grupoalvamex_tools.planeacion_gerencia"/>
+        
+        <menuitem name="Agregar Vendedor" id="agregar_vendedor" parent="sales_team.menu_base_partner" action="ventas_vendedores_action" sequence="101"/>
 
     </data>
 </odoo>
