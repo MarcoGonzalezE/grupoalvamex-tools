@@ -479,6 +479,7 @@ class InventarioEntradas(models.Model):
     _inherit = ['mail.thread']
 
     entrada_id = fields.Many2one('ventas.produccion.inventario', string="Entrada", track_visibility='onchange')
+    sucursal = fields.Many2one('sucursales.planeacion', related="entrada_id.sucursal", string="CEDIS")
     entrada_stock = fields.Float(string="Cantidad", track_visibility='onchange')
     fecha_entrada = fields.Date(string="Fecha", track_visibility='onchange')
     lote = fields.Char(string="Lote", track_visibility='onchange')

@@ -406,6 +406,7 @@
                                 <field name="entrada_id" readonly="True" string="Producto" domain="[('sucursal','=',1)]"/>
                                 <field name="fecha_entrada" attrs="{'readonly':[('estado','=','recibido')]}"/>
                                 <field name="lote" attrs="{'readonly':[('estado','=','recibido')]}"/>
+                                <field name="sucursal" readonly="1"/>
                             </group>
                             <group>
                                 <field name="produccion_id" readonly="True"/>
