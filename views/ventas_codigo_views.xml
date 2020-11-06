@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	<record  id="ventas_codigo_form_view" model="ir.ui.view">
+    		<field name="name">ventas_codigo_form_view</field>
+    		<field name="model">ventas.qr</field>
+    		<field name="arch" type="xml">
+    			<form string="Ventas Codigo">
+    				<sheet>
+    					<group>
+    						<group>
+    							<field name="cliente_id"/>
+    							<field name="codigo_qr" widget="image"/>
+    						</group>
+    						<group>
+    							<field name="vendedor_id"/>
+    							<button string="Crear Pedido de Venta" type="object" class="btn-primary" name="registrar_venta"/>
+    						</group>
+    					</group>
+    					<div>
+    						<field name="productos_ids">
+    							<tree>
+    								<field name="default_code"/>
+    								<field name="name"/>
+    							</tree>
+    						</field>
+    					</div>
+    				</sheet>
+    			</form>
+    		</field>
+    	</record>
+
+    	<record id="ventas_codigo_tree_view" model="ir.ui.view">
+    		<field name="name">ventas_codigo_tree_view</field>
+    		<field name="model">ventas.qr</field>
+    		<field name="arch" type="xml">
+    			<tree>
+    				<field name="cliente_id"/>
+    				<field name="vendedor_id"/>
+    			</tree>
+    		</field>
+    	</record>
+
+    	<record id="ventas_codigo_action" model="ir.actions.act_window">
+    		<field name="name">Ventas Codigo QR</field>
+    		<field name="type">ir.actions.act_window</field>
+            <field name="res_model">ventas.qr</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem name="Ventas QR" id="clientes_qr" parent="menu_planeacion" action="ventas_codigo_action" sequence="60"/>
+
+    </data>
+</odoo>
