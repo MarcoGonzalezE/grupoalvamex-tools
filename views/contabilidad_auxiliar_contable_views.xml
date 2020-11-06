@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+        <record id="view_account_account_lines_form_inherited" model="ir.ui.view">
+            <field name="name">Linea de Auxiliar de Cuentas</field>
+            <field name="model">account.account_lines</field>
+            <field name="inherit_id" ref="argil_mx_accounting_reports_consol.view_account_account_lines_form"/>
+            <field name="arch" type="xml">
+                <field name="move_ref" position="after" >
+                    <field name="check_number"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -14,15 +14,15 @@
 		</record>
 <!-- PEDIDOS DE VENTAS -->
 		<record id="importar_lineas_ventas_view_form" model="ir.ui.view">
-		<field name="name">importar.lineas.ventas.view.form</field>
-		<field name="model">sale.order</field>
-		<field name="inherit_id" ref="sale.view_order_form"/>
-		<field name="arch" type="xml">
-			<xpath expr="//header" position="inside">
-				<button name="importar_ventas" string="Importar lineas de Pedido"  type="object" states="draft,sent" groups="grupoalvamex_tools.dep_ventas" class="btn-primary" context="{'sh_so_id':id}" />
-			</xpath>
-		</field>
-	</record>
+			<field name="name">importar.lineas.ventas.view.form</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_order_form"/>
+			<field name="arch" type="xml">
+				<xpath expr="//header" position="inside">
+					<button name="importar_ventas" string="Importar lineas de Pedido"  type="object" states="draft,sent" groups="grupoalvamex_tools.dep_ventas" class="btn-primary" context="{'sh_so_id':id}" />
+				</xpath>
+			</field>
+		</record>
 	</data>
 </odoo>
   
