@@ -8,8 +8,9 @@ class AccountAccountLines(models.Model):
 
     @api.depends('name')
     def fnNumeroCheque(self):
-    	pagos = self.env['account.payment'].search([('name','=',self.name)])
-    	if pagos:
-    		self.check_number = pagos.check_number
-    	else:
-    		self.check_number = False
+        for r in self:
+        	pagos = self.env['account.payment'].search([('name','=',r.name)])
+        	if pagos:
+        		r.check_number = pagos.check_number
+        	else:
+        		r.check_number = False
