@@ -16,3 +16,5 @@ access_mrp_production,Fabricacion,model_mrp_production,planeacion_gerencia,1,0,0
 access_mrp_production,Fabricacion,model_mrp_production,planeacion_produccion,1,0,0,0
 access_inventario_devoluciones,Devoluciones,model_inventario_devoluciones,planeacion_pt,1,0,0,0
 access_inventario_devoluciones,Devoluciones,model_inventario_devoluciones,planeacion_produccion,1,0,0,0
+access_ventas_qr,Ventas QR,model_ventas_qr,planeacion_gerencia,1,1,1,1
+access_ventas_qr,Ventas QR,model_ventas_qr,planeacion_ventas,1,1,1,1
