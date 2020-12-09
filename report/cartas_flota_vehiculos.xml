@@ -56,7 +56,7 @@
                                 </t>
                             </p>
                             <p><strong>Alcance: <span t-field="o.assign_id.driver_job"/></strong></p>
-                            <p align="justify">El propósito del presente documento es establecer las Políticas y Lineamientos para la asignación de vehículo utilitario que brinda la empresa Grupo Alvamex como herramienta de trabajo para sus colaboradores, donde se hace constar que está herramienta es para cubrir las necesidades que requiera la operación quedando como responsable absoluto del resguardo de esta unidad <strong><span t-field="o.assign_id.driver_id"/></strong> con puesto de <span t-field="o.assign_id.driver_job"/> así mismo deberá darle el adecuado mantenimiento, cuidado y uso de la misma.</p>
+                            <p align="justify">El propósito del presente documento es establecer las Políticas y Lineamientos para la asignación de vehículo utilitario que brinda la empresa Grupo Alvamex como herramienta de trabajo para sus colaboradores, donde se hace constar que está herramienta es para cubrir las necesidades que requiera la operación quedando como responsable absoluto del resguardo de esta unidad <strong><span t-field="o.assign_id.employee_id"/></strong> con puesto de <span t-field="o.assign_id.driver_job"/> así mismo deberá darle el adecuado mantenimiento, cuidado y uso de la misma.</p>
                             <br/>
                             <p><strong>Mantenimiento y revisión de Unidad (diariamente)</strong></p>
                             <p>
@@ -91,7 +91,7 @@
                                 <br/>
                                 <br/>
                                 _____________________________________<br/>
-                                <strong><span t-field="o.assign_id.driver_id"/></strong>
+                                <strong><span t-field="o.assign_id.employee_id"/></strong>
                             </p>
                         </t>
                     </div>
