@@ -589,6 +589,36 @@
                   <field name="es_promocion" string="Promoción"/>
                   <field name="planeacion_id" readonly="1"/>
                 </field>
+                <xpath expr="//header" position="inside">
+                    <button name="button_start" type="object" string="Inicia Carga"/>
+                    <button name="button_finish" type="object" string="Finaliza Carga" class="btn-info"/>
+                </xpath>
+                <xpath expr="//notebook/page[2]" position="after">
+                    <page string="Seguimiento de Tiempos">
+                        <group>
+                            <group>
+                                <field name="is_user_working" invisible="1"/>
+                                <label for="duration"/>
+                                <div>
+                                    <button style="pointer-events: none; font-size:18px;" class="oe_inline label label-default">
+                                       <field name="duration" widget="time_counter" help="Time the currently logged user spent on this workorder."/>
+                                    </button>
+                                </div>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="time_ids" nolabel="1">
+                                <tree>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="duration" widget="float_time" sum="Total duration"/>
+                                    <field name="user_id"/>
+                                </tree>
+                            </field>
+                        </group>
+
+                    </page>
+                </xpath>
             </field>
         </record>
         
