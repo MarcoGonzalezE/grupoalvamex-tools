@@ -330,10 +330,31 @@
             </field>
         </record>
 
+        <record id="sucursales_planeacion_view_kandan" model="ir.ui.view">
+            <field name="name">Centros de Distribución</field>
+            <field name="model">sucursales.planeacion</field>
+            <field name="arch" type="xml">
+                <kanban class="o_res_partner_kanban">
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click">
+                                <div class="o_kanban_image">
+                                    <img t-att-src="kanban_image('sucursales.planeacion', 'imagen', record.id.value)"/>
+                                </div>
+                                <div class="oe_kanban_details">
+                                    <strong class="oe_partner_heading"><field name="name"/></strong>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
         <record id="sucursales_planeacion_action" model="ir.actions.act_window">
             <field name="name">Centros de Distribución</field>
             <field name="res_model">sucursales.planeacion</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">kanban,tree,form</field>
             <field name="help" type="html">
                 <p>No se ha registrado ningun Centro de distribución</p>
             </field>
@@ -349,6 +370,7 @@
                         <field name="entrada_stock"/>
                         <field name="lote"/>
                         <field name="fecha_entrada"/>
+                        <field name="estado" invisible="1"/>
                     </group>
                     <group>
                         <field name="nota"/>
@@ -439,11 +461,22 @@
             </field>
         </record>
 
+        <record id="inventario_entrada_fabricacion_view_graph" model="ir.ui.view">
+            <field name="name">Planeacion Fabricacion</field>
+            <field name="model">inventario.entradas</field>
+            <field name="arch" type="xml">
+                <graph>
+                    <field name="entrada_id" group="True"/>
+                </graph>
+            </field>
+        </record>
+
         <record id="inventario_entrada_fabricacion_action" model="ir.actions.act_window">
             <field name="name">Entradas</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">inventario.entradas</field>
             <field name="view_mode">tree,form,graph</field>
+            <field name="domain">[('sucursal','=', 1)]</field>
         </record>
 
         <record id="tree_inventario_entrada_fabricacion_action_view" model="ir.actions.act_window.view">
@@ -459,6 +492,14 @@
             <field name="res_model">inventario.entradas</field>
             <field name="view_mode">form</field>
             <field name="view_id" ref="inventario_entrada_fabricacion_view_form"/>
+            <field name="act_window_id" ref="inventario_entrada_fabricacion_action"/>
+        </record>
+
+        <record id="graph_inventario_entrada_fabricacion_action_view" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="res_model">inventario.entradas</field>
+            <field name="view_mode">graph</field>
+            <field name="view_id" ref="inventario_entrada_fabricacion_view_graph"/>
             <field name="act_window_id" ref="inventario_entrada_fabricacion_action"/>
         </record>
 <!-- Inventario Salidas -->

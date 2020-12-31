@@ -3,6 +3,7 @@
 from odoo import _, fields, models, api
 from odoo.exceptions import UserError, ValidationError
 import datetime, exceptions, warnings
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
 
 #CENTROS DE DISTRIBUCION
 class SucursalesPlaneacion(models.Model):
@@ -448,7 +449,7 @@ class VentasProduccionInvetario(models.Model):
             'view_mode': 'form',
             'view_name': 'form',
             'res_model': 'inventario.entradas',
-            'context': {'default_entrada_id': self.id},
+            'context': {'default_entrada_id': self.id, 'default_estado': 'recibido'},
             'target': 'new'
         }
 
@@ -546,10 +547,12 @@ class FabricacionPlaneacion(models.TransientModel):
     def planeacion(self):
         fabricacion = self.env['mrp.production'].browse(self._context.get('active_ids'))
         producto = self.env['ventas.produccion.inventario'].search([('name','=',fabricacion.product_id.id),('sucursal','=',1)], limit=1)
+        fecha_fabricacion = datetime.datetime.strptime(fabricacion[0].date_planned_start,"%Y-%m-%d %H:%M:%S").date()
+        print(fecha_fabricacion)
         planeacion = self.env['inventario.entradas'].create({
             'produccion_id': fabricacion[0].id,
             'produccido': fabricacion[0].product_qty,
-            'fecha': fabricacion[0].date_planned_start,
+            'fecha_entrada': fecha_fabricacion,
             'entrada_id': producto.id,
         })
 
