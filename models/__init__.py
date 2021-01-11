@@ -9,3 +9,4 @@ from . import almacen_general
 from . import validacion_impuestos
 from . import flota_vehiculos
 from . import contabilidad_auxiliar_contable
+from . import product_template

@@ -55,6 +55,7 @@
         'report/reporte_clientes_template.xml',
         'report/cartas_flota_vehiculos.xml',
         'views/contabilidad_auxiliar_contable_views.xml',
+        'views/product_template_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': ['demo/demo.xml'],    
