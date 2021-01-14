@@ -12,13 +12,11 @@ class PurchaseOrderAlmacenGeneral(models.Model):
 
     @api.onchange('received')
     def notificacion(self):
-        print("ENTRADO A NOTIFICACION")
         compra = self.env['purchase.order'].search([('name', '=', self.name)])
         followers = self.env['mail.followers'].search(
             [('res_model', '=', 'purchase.order'), ('res_id', '=', compra.id)])
         if self.received == 'completed_received' or self.received == 'partial_received':
             for follow in followers:
-                print(follow.partner_id.name)
                 notificacion_template = self.env['ir.model.data'].sudo().get_object('grupoalvamex_tools', 'notificacion_compra_almacen')
                 values = notificacion_template.generate_email(compra.id)
                 values['model'] = 'purchase.order'
@@ -30,3 +28,16 @@ class PurchaseOrderAlmacenGeneral(models.Model):
                 values['email_to'] = follow.partner_id.email
                 send_mail = self.env['mail.mail'].sudo().create(values)
                 send_mail.send()
+            #Enviar a Karla Cerpa
+            notificacion_template = self.env['ir.model.data'].sudo().get_object('grupoalvamex_tools',
+                                                                                'notificacion_compra_almacen')
+            values = notificacion_template.generate_email(compra.id)
+            values['model'] = 'purchase.order'
+            values['res_id'] = self.id  # OJO AQUI
+            if self.received == 'completed_received':
+                values['body_html'] = values['body_html'].replace("_estado_compra_", "Recibido Completo")
+            if self.received == 'partial_received':
+                values['body_html'] = values['body_html'].replace("_estado_compra_", "Recibido Incompleto")
+            values['email_to'] = 'karla.cerpa@grupoalvamex.com'
+            send_mail = self.env['mail.mail'].sudo().create(values)
+            send_mail.send()
