@@ -43,7 +43,9 @@ class MkOP(models.Model):
                         _cargos := (select sum(debit) from account_move_line where name = $1 and product_id <> r.product_id);
                         _move_id := (select id from stock_move  where origin = $1 and round(product_qty,4) = round(r.product_qty,4) and product_id = r.product_id);
                         _cost = _cargos / r.product_qty;
-                        update product_template set manufacture_cost = _cost, manufacture_origin = r.origin,last_date_cost = (select CURRENT_DATE)  where id = r.product_id;
+                        update product_template 
+                        set manufacture_cost = _cost, manufacture_origin = r.origin,last_date_cost = (select CURRENT_DATE) 
+                        where id = (select product_tmpl_id from product_product where id = r.product_id);
                         
                         FOR q in select quant_id  FROM stock_quant_move_rel where move_id = _move_id LOOP
                         update stock_quant set cost = _cost where id = q.quant_id;
